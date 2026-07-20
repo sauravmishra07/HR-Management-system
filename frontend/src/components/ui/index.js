@@ -8,6 +8,7 @@ export { default as DataTable } from './DataTable';
 export { default as Pagination } from './Pagination';
 export { default as PageHeader } from './PageHeader';
 export { default as StatCard } from './StatCard';
+export { default as Chart } from './Chart';
 export { default as EmployeeCell } from './EmployeeCell';
 export { default as Tabs } from './Tabs';
 export { default as ThemeToggle } from './ThemeToggle';

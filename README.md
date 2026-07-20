@@ -10,6 +10,11 @@ Hra-management/
 └── frontend/    React 19 + Vite + Redux Toolkit + React Query + Tailwind
 ```
 
+## 📚 Documentation
+
+- **[API_DOC.md](API_DOC.md)** — full REST API reference: every endpoint, auth, guards, request/response shapes, status codes and enums.
+- **[GUIDE.md](GUIDE.md)** — feature guide: setup, roles, and how to use each feature step by step.
+
 ## ✨ Features
 
 | Module | Highlights |

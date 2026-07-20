@@ -1,13 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reportApi, attendanceApi, leaveApi, announcementApi, holidayApi } from '@/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
+import { useTheme } from '@/hooks/useTheme';
 import { apiError } from '@/lib/axios';
 import { fdate, fdateShort, DOW } from '@/utils/format';
-import { Card, StatCard, Button, Icon, EmployeeCell, Spinner } from '@/components/ui';
+import { BRAND, SERIES, alpha, chartTheme } from '@/lib/charts';
+import { Card, StatCard, Button, Icon, EmployeeCell, Spinner, Chart } from '@/components/ui';
 
+// Representative weekly attendance %, used only as a graceful fallback until
+// real attendance records exist (the trend endpoint returns [] when empty).
 const WEEK = [['Mon', 94], ['Tue', 96], ['Wed', 89], ['Thu', 92], ['Fri', 95], ['Sat', 83]];
 
 function LiveClock() {
@@ -23,12 +27,15 @@ function LiveClock() {
 
 export default function DashboardPage() {
   const { user, empId, can } = useAuth();
+  const { isDark } = useTheme();
   const navigate = useNavigate();
   const toast = useToast();
   const qc = useQueryClient();
   const today = new Date();
+  const [trendType, setTrendType] = useState('line'); // 'line' | 'bar'
 
   const overview = useQuery({ queryKey: ['reports', 'overview'], queryFn: reportApi.overview, select: (r) => r.data });
+  const trend = useQuery({ queryKey: ['reports', 'attendance-trend'], queryFn: reportApi.attendanceTrend, select: (r) => r.data });
   const attendance = useQuery({ queryKey: ['attendance', 'today'], queryFn: attendanceApi.today, select: (r) => r.data });
   const pending = useQuery({
     queryKey: ['leaves', { status: 'Pending', limit: 4 }],
@@ -56,7 +63,117 @@ export default function DashboardPage() {
   const myIn = myRow?.in;
   const myOut = myRow?.out;
 
-  const week = [...WEEK, ['Sun', pp(s.present)]];
+  const theme = chartTheme(isDark);
+
+  /* ----- Attendance trend (real 7-day data, sample fallback) ----- */
+  const trendRows = useMemo(() => {
+    if (trend.data?.length) {
+      return trend.data.map((d) => ({ label: DOW[new Date(d.date).getDay()].slice(0, 3), present: d.present, leave: d.leave }));
+    }
+    const week = [...WEEK, ['Sun', pp(s.present)]];
+    return week.map(([label, pct]) => ({
+      label,
+      present: Math.round((total * pct) / 100),
+      leave: Math.max(0, Math.round((total * (100 - pct)) / 100 / 3)),
+    }));
+  }, [trend.data, total, s.present]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isBar = trendType === 'bar';
+  const trendData = useMemo(() => ({
+    labels: trendRows.map((r) => r.label),
+    datasets: [
+      {
+        label: 'Present',
+        data: trendRows.map((r) => r.present),
+        borderColor: BRAND.blue,
+        backgroundColor: isBar ? alpha(BRAND.blue, 0.9) : alpha(BRAND.blue, 0.16),
+        borderWidth: 2,
+        fill: !isBar,
+        tension: 0.38,
+        pointRadius: isBar ? 0 : 3,
+        pointBackgroundColor: BRAND.blue,
+        borderRadius: 6,
+        maxBarThickness: 26,
+      },
+      {
+        label: 'On leave',
+        data: trendRows.map((r) => r.leave),
+        borderColor: BRAND.cyan,
+        backgroundColor: isBar ? alpha(BRAND.cyan, 0.85) : alpha(BRAND.cyan, 0.3),
+        borderWidth: 2,
+        fill: !isBar,
+        tension: 0.38,
+        pointRadius: isBar ? 0 : 3,
+        pointBackgroundColor: BRAND.cyan,
+        borderRadius: 6,
+        maxBarThickness: 26,
+      },
+    ],
+  }), [trendRows, isBar]);
+
+  const trendOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { intersect: false, mode: 'index' },
+    plugins: {
+      legend: { position: 'top', align: 'end', labels: { color: theme.text, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, padding: 16, font: { weight: '600' } } },
+      tooltip: { backgroundColor: theme.tooltipBg, titleColor: '#fff', bodyColor: '#fff', padding: 10, cornerRadius: 8, displayColors: true, boxPadding: 4 },
+    },
+    scales: {
+      x: { grid: { display: false }, border: { display: false }, ticks: { color: theme.text, font: { weight: '600' } } },
+      y: { beginAtZero: true, grid: { color: theme.grid }, border: { display: false }, ticks: { color: theme.text, precision: 0, maxTicksLimit: 5 } },
+    },
+  }), [theme]);
+
+  /* ----- Headcount by department (bar) ----- */
+  const byDept = overview.data?.byDept || [];
+  const deptData = useMemo(() => ({
+    labels: byDept.map((d) => d.dept),
+    datasets: [{
+      label: 'Employees',
+      data: byDept.map((d) => d.count),
+      backgroundColor: byDept.map((_, i) => alpha(SERIES[i % SERIES.length], 0.9)),
+      borderRadius: 7,
+      maxBarThickness: 34,
+    }],
+  }), [byDept]);
+
+  const deptOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { backgroundColor: theme.tooltipBg, titleColor: '#fff', bodyColor: '#fff', padding: 10, cornerRadius: 8, callbacks: { label: (c) => ` ${c.parsed.y} employees` } },
+    },
+    scales: {
+      x: { grid: { display: false }, border: { display: false }, ticks: { color: theme.text, font: { weight: '600' }, autoSkip: false, maxRotation: 40, minRotation: 0 } },
+      y: { beginAtZero: true, grid: { color: theme.grid }, border: { display: false }, ticks: { color: theme.text, precision: 0, maxTicksLimit: 6 } },
+    },
+  }), [theme]);
+
+  /* ----- Workforce split (doughnut) ----- */
+  const g = overview.data?.byGender || { M: 0, F: 0, O: 0 };
+  const genderTotal = (g.M || 0) + (g.F || 0) + (g.O || 0);
+  const genderData = useMemo(() => ({
+    labels: ['Male', 'Female', 'Other'],
+    datasets: [{
+      data: [g.M || 0, g.F || 0, g.O || 0],
+      backgroundColor: [BRAND.blue, BRAND.cyan, BRAND.navy],
+      borderColor: isDark ? '#151e30' : '#ffffff',
+      borderWidth: 3,
+      hoverOffset: 6,
+    }],
+  }), [g.M, g.F, g.O, isDark]);
+
+  const genderOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '66%',
+    plugins: {
+      legend: { position: 'bottom', labels: { color: theme.text, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, padding: 14, font: { weight: '600' } } },
+      tooltip: { backgroundColor: theme.tooltipBg, titleColor: '#fff', bodyColor: '#fff', padding: 10, cornerRadius: 8, callbacks: { label: (c) => ` ${c.label}: ${c.parsed} (${genderTotal ? Math.round((c.parsed / genderTotal) * 100) : 0}%)` } },
+    },
+  }), [theme, genderTotal]);
 
   return (
     <>
@@ -75,7 +192,7 @@ export default function DashboardPage() {
         <div className="pulse-wrap" style={{ minWidth: 0 }}>
           <div className="pulse-lbls" style={{ display: 'flex', gap: 16, fontSize: 12, fontWeight: 700, marginBottom: 8, flexWrap: 'wrap' }}>
             <span><i style={{ background: '#fff', width: 9, height: 9, borderRadius: 3, display: 'inline-block', marginRight: 6 }} />Present {s.present}</span>
-            <span><i style={{ background: '#9EC2FF', width: 9, height: 9, borderRadius: 3, display: 'inline-block', marginRight: 6 }} />On leave {s.leave}</span>
+            <span><i style={{ background: '#95CCDD', width: 9, height: 9, borderRadius: 3, display: 'inline-block', marginRight: 6 }} />On leave {s.leave}</span>
             <span><i style={{ background: 'rgba(13,42,88,.55)', width: 9, height: 9, borderRadius: 3, display: 'inline-block', marginRight: 6 }} />Absent {s.absent}</span>
           </div>
           <div className="pulse-bar">
@@ -121,54 +238,86 @@ export default function DashboardPage() {
         <StatCard label="Payroll / month" icon="banknote" value={`₹${((overview.data?.payrollMonthly || 0) / 100000).toFixed(1)}L`} trend={`${overview.data?.deptCount || 0} departments`} />
       </div>
 
-      {/* Two-column */}
-      <div className="grid" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 14, marginTop: 18 }}>
-        <div style={{ display: 'grid', gap: 14 }}>
-          <Card title="This week's attendance" sub="% present per day">
-            <div className="bars-v" style={{ marginTop: 18 }}>
-              {week.map(([d, v]) => (
-                <div className="bv" key={d}>
-                  <div className="bar" style={{ height: `${v}%` }}>
-                    <span className="val">{v}</span>
-                  </div>
-                  <span className="lbl">{d}</span>
-                </div>
-              ))}
+      {/* Analytics row — Chart.js */}
+      <div className="dash-charts">
+        <Card
+          title="Attendance trend"
+          sub="last 7 days"
+          action={
+            <div className="seg" role="tablist" aria-label="Chart type">
+              <button className={`seg-btn ${!isBar ? 'on' : ''}`} onClick={() => setTrendType('line')} aria-selected={!isBar}>
+                <Icon name="chart" width={13} height={13} /> Line
+              </button>
+              <button className={`seg-btn ${isBar ? 'on' : ''}`} onClick={() => setTrendType('bar')} aria-selected={isBar}>
+                <Icon name="grid" width={13} height={13} /> Bar
+              </button>
             </div>
-          </Card>
+          }
+        >
+          <Chart type={trendType} data={trendData} options={trendOptions} height={288} ariaLabel="Attendance trend over the last seven days" />
+        </Card>
 
-          {can('approveLeave') && (
-            <Card title="Leave requests waiting for you" action={<span className="link" onClick={() => navigate('/leaves')}>View all</span>}>
-              {pending.isLoading ? (
-                <Spinner />
-              ) : pending.data?.length ? (
-                <div className="tbl-wrap" style={{ marginTop: 8 }}>
-                  <table className="data" style={{ minWidth: 520 }}>
-                    <tbody>
-                      {pending.data.map((l) => (
-                        <tr key={l._id}>
-                          <td><EmployeeCell employee={l.employee} empId={l.emp} /></td>
-                          <td>
-                            <div className="cell-main">{l.type} · {l.days}d</div>
-                            <div className="cell-sub">{fdateShort(l.from)} → {fdateShort(l.to)}</div>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                              <Button size="sm" icon="check" onClick={() => approve.mutate(l._id)}>Approve</Button>
-                              <Button size="sm" variant="slate" onClick={() => reject.mutate(l._id)}>Reject</Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="empty"><Icon name="check" width={38} height={38} /><b>Nothing pending</b><p>All leave requests are cleared.</p></div>
-              )}
-            </Card>
+        <Card title="Workforce split" sub="by gender">
+          {overview.isLoading ? (
+            <Spinner />
+          ) : genderTotal ? (
+            <div className="doughnut-wrap">
+              <Chart type="doughnut" data={genderData} options={genderOptions} height={230} ariaLabel="Workforce split by gender" />
+              <div className="doughnut-center">
+                <b>{genderTotal}</b>
+                <span>people</span>
+              </div>
+            </div>
+          ) : (
+            <div className="empty"><Icon name="users" width={34} height={34} /><b>No data yet</b><p>Add employees to see the split.</p></div>
           )}
-        </div>
+        </Card>
+      </div>
+
+      {/* Headcount by department — Chart.js bar */}
+      <Card title="Headcount by department" sub="active employees" className="dash-dept">
+        {overview.isLoading ? (
+          <Spinner />
+        ) : byDept.length ? (
+          <Chart type="bar" data={deptData} options={deptOptions} height={260} ariaLabel="Employee headcount by department" />
+        ) : (
+          <div className="empty"><Icon name="building" width={34} height={34} /><b>No departments yet</b><p>Headcount will appear once employees are added.</p></div>
+        )}
+      </Card>
+
+      {/* Two-column — approvals + org feed */}
+      <div className="dash-lower">
+        {can('approveLeave') && (
+          <Card title="Leave requests waiting for you" action={<span className="link" onClick={() => navigate('/leaves')}>View all</span>}>
+            {pending.isLoading ? (
+              <Spinner />
+            ) : pending.data?.length ? (
+              <div className="tbl-wrap" style={{ marginTop: 8 }}>
+                <table className="data" style={{ minWidth: 520 }}>
+                  <tbody>
+                    {pending.data.map((l) => (
+                      <tr key={l._id}>
+                        <td><EmployeeCell employee={l.employee} empId={l.emp} /></td>
+                        <td>
+                          <div className="cell-main">{l.type} · {l.days}d</div>
+                          <div className="cell-sub">{fdateShort(l.from)} → {fdateShort(l.to)}</div>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                            <Button size="sm" icon="check" onClick={() => approve.mutate(l._id)}>Approve</Button>
+                            <Button size="sm" variant="slate" onClick={() => reject.mutate(l._id)}>Reject</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="empty"><Icon name="check" width={38} height={38} /><b>Nothing pending</b><p>All leave requests are cleared.</p></div>
+            )}
+          </Card>
+        )}
 
         <div style={{ display: 'grid', gap: 14, alignContent: 'start' }}>
           <Card title="Announcements" action={<span className="link" onClick={() => navigate('/announcements')}>All</span>}>
@@ -183,6 +332,7 @@ export default function DashboardPage() {
                   {a.pin && <span className="chip chip-sky">Pinned</span>}
                 </div>
               ))}
+              {!announcements.data?.length && <p style={{ color: 'var(--ink-3)', fontSize: 12.5, padding: '8px 0' }}>No announcements yet.</p>}
             </div>
           </Card>
 
