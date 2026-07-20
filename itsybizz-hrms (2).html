@@ -1,0 +1,2587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAMP — Recruitment And Management of People</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS — light, blue-only ============ */
+:root{
+  --paper:#F2F6FC;          /* page background */
+  --card:#FFFFFF;           /* surfaces */
+  --ink:#102A4D;            /* deep navy text */
+  --ink-2:#5B77A0;          /* blue-grey secondary */
+  --ink-3:#8AA2C4;          /* faint labels */
+  --line:#DEE8F6;           /* hairlines */
+  --line-2:#CBDCF3;
+  --blue:#1465E0;           /* primary action */
+  --blue-deep:#0A3D91;      /* pressed / strong */
+  --blue-ink:#0E4FB5;
+  --sky:#E7F0FE;            /* soft fills */
+  --sky-2:#CFE2FC;
+  --sky-3:#F5F9FF;
+  --slate:#7E96BB;          /* "negative" stays in blue family */
+  --slate-bg:#EDF2F9;
+  --shadow:0 1px 2px rgba(16,42,77,.05);
+  --shadow-lift:0 10px 30px -12px rgba(10,61,145,.25);
+  --r:14px; --r-sm:10px;
+  --font-ui:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-disp:'Bricolage Grotesque','Manrope',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font-ui);background:var(--paper);color:var(--ink);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink)}
+::placeholder{color:var(--ink-3)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--sky-2);border-radius:8px;border:3px solid var(--paper)}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ============ APP SHELL ============ */
+.app{display:grid;grid-template-columns:246px 1fr;min-height:100vh}
+.sidebar{background:var(--card);border-right:1px solid var(--line);padding:18px 14px 24px;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:60;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 16px}
+.brand-tile{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--blue) 0%,var(--blue-deep) 100%);color:#fff;display:grid;place-items:center;font-family:var(--font-disp);font-weight:800;font-size:17px;letter-spacing:-.5px;box-shadow:0 4px 10px -3px rgba(20,101,224,.5)}
+.brand-name{font-family:var(--font-disp);font-weight:800;font-size:18px;letter-spacing:-.3px;line-height:1.1}
+.brand-name span{color:var(--blue)}
+.brand-sub{font-size:10.5px;color:var(--ink-3);font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+.nav-group{margin-top:14px}
+.nav-group-label{font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-3);padding:0 10px 6px}
+.nav-item{display:flex;align-items:center;gap:11px;width:100%;padding:9px 10px;border-radius:10px;font-weight:600;font-size:13.5px;color:var(--ink-2);margin-bottom:2px;transition:background .15s,color .15s;text-align:left}
+.nav-item svg{width:17px;height:17px;flex-shrink:0}
+.nav-item:hover{background:var(--sky-3);color:var(--blue-ink)}
+.nav-item.active{background:var(--sky);color:var(--blue-ink)}
+.nav-item.active svg{stroke:var(--blue)}
+.nav-badge{margin-left:auto;background:var(--blue);color:#fff;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:20px}
+.sidebar-foot{margin-top:auto;padding:14px 10px 0;font-size:11px;color:var(--ink-3);line-height:1.5;border-top:1px solid var(--line)}
+.sidebar-foot b{color:var(--ink-2)}
+
+/* ============ TOPBAR ============ */
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:12px 26px}
+.hamburger{display:none;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);align-items:center;justify-content:center}
+.top-title{font-family:var(--font-disp);font-weight:700;font-size:17px;letter-spacing:-.2px}
+.top-search{margin-left:auto;position:relative;width:min(320px,34vw)}
+.top-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--ink-3)}
+.top-search input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--line);border-radius:10px;background:var(--sky-3);transition:border .15s,background .15s}
+.top-search input:focus{background:#fff;border-color:var(--sky-2);outline:none;box-shadow:0 0 0 3px var(--sky)}
+.icon-btn{position:relative;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;transition:background .15s}
+.icon-btn:hover{background:var(--sky-3)}
+.icon-btn svg{width:17px;height:17px;stroke:var(--ink-2)}
+.icon-btn .dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--blue);border:2px solid #fff}
+.role-switch{display:flex;align-items:center;gap:6px;padding:0 10px;height:38px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.role-switch svg{width:16px;height:16px;flex:none}
+.role-switch select{border:0;background:transparent;font-family:var(--font-ui);font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;outline:none;max-width:150px}
+.top-user{display:flex;align-items:center;gap:10px;padding:5px 10px 5px 6px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.top-user-meta{line-height:1.15;text-align:left}
+.top-user-meta b{font-size:13px;display:block}
+.top-user-meta span{font-size:11px;color:var(--ink-2)}
+
+/* notification panel */
+.notif-panel{position:absolute;top:54px;right:0;width:330px;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-lift);padding:8px;display:none;z-index:80}
+.notif-panel.open{display:block;animation:pop .18s ease}
+.notif-head{display:flex;justify-content:space-between;align-items:center;padding:8px 10px 10px;font-weight:800;font-family:var(--font-disp);font-size:14px}
+.notif-head button{font-size:12px;color:var(--blue);font-weight:700}
+.notif-item{display:flex;gap:11px;padding:10px;border-radius:10px;cursor:pointer}
+.notif-item:hover{background:var(--sky-3)}
+.notif-ico{width:34px;height:34px;border-radius:10px;background:var(--sky);display:grid;place-items:center;flex-shrink:0}
+.notif-ico svg{width:15px;height:15px;stroke:var(--blue)}
+.notif-item p{font-size:12.5px;font-weight:600;line-height:1.35}
+.notif-item span{font-size:11px;color:var(--ink-3)}
+@keyframes pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+</style>
+<style>
+/* ============ CONTENT ============ */
+.content{padding:24px 26px 60px;max-width:1240px;width:100%;margin:0 auto}
+.view{display:none}
+.view.active{display:block;animation:viewIn .22s ease}
+@keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.page-head h1{font-family:var(--font-disp);font-weight:800;font-size:24px;letter-spacing:-.5px}
+.page-head .hint{color:var(--ink-2);font-size:13px;margin-top:2px;max-width:560px}
+.head-actions{display:flex;gap:9px;flex-wrap:wrap}
+
+/* ============ BUTTONS ============ */
+.btn{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:13.5px;padding:9px 16px;border-radius:10px;transition:transform .12s,box-shadow .15s,background .15s;white-space:nowrap}
+.btn svg{width:15px;height:15px}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 4px 12px -4px rgba(20,101,224,.55)}
+.btn-primary:hover{background:var(--blue-ink)}
+.btn-primary svg{stroke:#fff}
+.btn-soft{background:var(--sky);color:var(--blue-ink)}
+.btn-soft:hover{background:var(--sky-2)}
+.btn-soft svg{stroke:var(--blue-ink)}
+.btn-ghost{border:1px solid var(--line-2);background:#fff;color:var(--ink-2)}
+.btn-ghost:hover{background:var(--sky-3);color:var(--blue-ink)}
+.btn-ghost svg{stroke:currentColor}
+.btn-slate{background:var(--slate-bg);color:var(--slate)}
+.btn-slate:hover{background:#E2EAF4}
+.btn-sm{padding:6px 11px;font-size:12px;border-radius:8px}
+.btn-sm svg{width:13px;height:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ============ CHIPS (status = blue shades only) ============ */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip-solid{background:var(--blue);color:#fff}.chip-solid::before{background:#fff}
+.chip-sky{background:var(--sky);color:var(--blue-ink)}
+.chip-deep{background:var(--blue-deep);color:#fff}.chip-deep::before{background:#9EC2FF}
+.chip-slate{background:var(--slate-bg);color:var(--slate)}
+.chip-line{border:1px dashed var(--line-2);color:var(--ink-3);background:#fff}
+
+/* ============ CARDS / STATS ============ */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.card-pad{padding:18px 20px}
+.card-title{font-family:var(--font-disp);font-weight:700;font-size:15px;letter-spacing:-.2px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-title .sub{font-family:var(--font-ui);font-size:12px;color:var(--ink-3);font-weight:600}
+.grid{display:grid;gap:14px}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+.grid-23{grid-template-columns:1.6fr 1fr}
+.stat{padding:16px 18px;position:relative;overflow:hidden;transition:box-shadow .2s,transform .2s}
+.stat:hover{box-shadow:var(--shadow-lift);transform:translateY(-2px)}
+.stat .lbl{font-size:12px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:7px}
+.stat .lbl svg{width:14px;height:14px;stroke:var(--blue)}
+.stat .num{font-family:var(--font-disp);font-weight:800;font-size:30px;letter-spacing:-1px;margin-top:6px;line-height:1}
+.stat .num small{font-size:14px;color:var(--ink-3);font-weight:600;letter-spacing:0}
+.stat .trend{font-size:11.5px;color:var(--ink-3);margin-top:6px;font-weight:600}
+.stat .trend b{color:var(--blue)}
+
+/* ============ TODAY STRIP (signature) ============ */
+.today-strip{background:linear-gradient(120deg,#0B4AAE 0%,var(--blue) 55%,#3E86F2 100%);border-radius:18px;padding:20px 24px;color:#fff;display:grid;grid-template-columns:auto 1fr auto;gap:26px;align-items:center;margin-bottom:18px;box-shadow:0 16px 40px -18px rgba(10,61,145,.6);position:relative;overflow:hidden}
+.today-strip::after{content:"";position:absolute;right:-60px;top:-70px;width:230px;height:230px;border-radius:50%;background:rgba(255,255,255,.08)}
+.ts-date .dow{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;opacity:.8}
+.ts-date .dt{font-family:var(--font-disp);font-weight:800;font-size:26px;letter-spacing:-.5px;line-height:1.15}
+.ts-date .clock{font-family:var(--font-mono);font-size:12.5px;opacity:.85;margin-top:2px}
+.pulse-wrap{min-width:0}
+.pulse-lbls{display:flex;gap:16px;font-size:12px;font-weight:700;margin-bottom:8px;flex-wrap:wrap}
+.pulse-lbls span{display:flex;align-items:center;gap:6px;opacity:.95}
+.pulse-lbls i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.pulse-bar{display:flex;height:14px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.18)}
+.pulse-bar div{transition:width .6s ease}
+.pb-present{background:#FFFFFF}
+.pb-leave{background:#9EC2FF}
+.pb-absent{background:rgba(13,42,88,.55)}
+.pulse-sub{font-size:11.5px;opacity:.8;margin-top:7px;font-weight:600}
+.ts-actions{display:flex;flex-direction:column;gap:8px;z-index:1}
+.btn-white{background:#fff;color:var(--blue-ink)}
+.btn-white:hover{background:var(--sky)}
+.btn-white svg{stroke:var(--blue-ink)}
+.btn-glass{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35)}
+.btn-glass:hover{background:rgba(255,255,255,.26)}
+.btn-glass svg{stroke:#fff}
+
+/* ============ TABLES ============ */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+thead th{text-align:left;font-size:11px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--ink-3);padding:11px 14px;border-bottom:1px solid var(--line);background:var(--sky-3);white-space:nowrap}
+tbody td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:var(--sky-3)}
+tbody tr:last-child td{border-bottom:none}
+td .cell-main{font-weight:700}
+td .cell-sub{font-size:11.5px;color:var(--ink-3);margin-top:1px}
+.mono{font-family:var(--font-mono);font-size:12px;color:var(--ink-2)}
+.amt{font-family:var(--font-mono);font-weight:600;font-size:13px}
+.row-actions{display:flex;gap:6px;justify-content:flex-end}
+.emp-cell{display:flex;align-items:center;gap:11px;min-width:170px}
+.avatar{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:12.5px;flex-shrink:0;font-family:var(--font-disp)}
+.avatar.lg{width:52px;height:52px;font-size:18px;border-radius:14px}
+.link{color:var(--blue);font-weight:700;cursor:pointer}
+.link:hover{text-decoration:underline}
+
+/* filter bar */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filter-bar .spacer{flex:1}
+.input,select.input{padding:9px 12px;border:1px solid var(--line-2);border-radius:10px;background:#fff;min-width:0}
+.input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--sky)}
+select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235B77A0' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:32px}
+.search-inline{position:relative}
+.search-inline svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--ink-3)}
+.search-inline .input{padding-left:33px;width:230px}
+
+/* tabs */
+.tabs{display:inline-flex;background:var(--sky-3);border:1px solid var(--line);border-radius:11px;padding:4px;gap:3px;margin-bottom:14px}
+.tab{padding:7px 15px;border-radius:8px;font-weight:700;font-size:12.5px;color:var(--ink-2)}
+.tab.active{background:#fff;color:var(--blue-ink);box-shadow:var(--shadow)}
+
+/* ============ FORMS ============ */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.form-grid .full{grid-column:1/-1}
+.fld label{display:block;font-size:12px;font-weight:800;color:var(--ink-2);margin-bottom:5px}
+.fld .input,.fld select,.fld textarea{width:100%}
+.fld textarea{padding:9px 12px;border:1px solid var(--line-2);border-radius:10px;resize:vertical;min-height:70px}
+.fld textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--sky)}
+.form-note{font-size:12px;color:var(--ink-3);background:var(--sky-3);border:1px dashed var(--line-2);border-radius:10px;padding:9px 12px;margin-top:12px}
+.api-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(120deg,var(--sky) 0%,var(--sky-3) 100%);border:1px solid var(--line-2);border-radius:14px;padding:14px 16px;margin-bottom:16px}
+.api-bar .api-ico{width:38px;height:38px;border-radius:10px;background:var(--card);display:grid;place-items:center;flex:none;box-shadow:0 2px 6px -2px rgba(20,101,224,.3)}
+.api-bar .api-ico svg{width:19px;height:19px}
+.api-bar .api-txt{flex:1;min-width:180px;line-height:1.3}
+.api-bar .api-txt b{font-size:13.5px;display:block}
+.api-bar .api-txt span{font-size:11.5px;color:var(--ink-2)}
+.api-bar .api-url{font-size:11px;color:var(--blue-deep)}
+.src-tag{font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:20px;text-transform:uppercase}
+.src-api{background:var(--sky);color:var(--blue-deep)}
+.src-manual{background:var(--sky-3);color:var(--slate)}
+.check-row{display:flex;gap:8px;flex-wrap:wrap}
+.check-pill{display:flex;align-items:center;gap:6px;border:1px solid var(--line-2);border-radius:9px;padding:7px 11px;font-size:12.5px;font-weight:700;color:var(--ink-2);cursor:pointer;user-select:none}
+.check-pill input{accent-color:var(--blue)}
+.check-pill:has(input:checked){background:var(--sky);border-color:var(--sky-2);color:var(--blue-ink)}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-row b{font-size:13.5px}
+.toggle-row p{font-size:12px;color:var(--ink-3)}
+.switch{position:relative;width:42px;height:24px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch i{position:absolute;inset:0;background:var(--line-2);border-radius:20px;transition:.2s;cursor:pointer}
+.switch i::before{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s;box-shadow:0 1px 3px rgba(16,42,77,.3)}
+.switch input:checked+i{background:var(--blue)}
+.switch input:checked+i::before{transform:translateX(18px)}
+
+/* ============ MODAL ============ */
+.modal-overlay{position:fixed;inset:0;background:rgba(16,42,77,.42);backdrop-filter:blur(3px);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:38px 16px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:18px;width:100%;max-width:560px;box-shadow:0 30px 80px -20px rgba(10,61,145,.45);animation:modalIn .22s ease;overflow:hidden}
+.modal.wide{max-width:760px}
+@keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 0}
+.modal-head h3{font-family:var(--font-disp);font-weight:800;font-size:18px;letter-spacing:-.3px}
+.modal-head .x{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--ink-3)}
+.modal-head .x:hover{background:var(--sky-3);color:var(--ink)}
+.modal-sub{padding:2px 22px 0;font-size:12.5px;color:var(--ink-2)}
+.modal-body{padding:16px 22px 20px}
+.modal-foot{display:flex;justify-content:flex-end;gap:9px;padding:14px 22px;background:var(--sky-3);border-top:1px solid var(--line)}
+
+/* ============ TOAST ============ */
+.toast-zone{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{background:var(--ink);color:#fff;border-radius:12px;padding:11px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:9px;box-shadow:0 14px 34px -10px rgba(16,42,77,.5);animation:toastIn .25s ease}
+.toast svg{width:15px;height:15px;stroke:#8FC0FF}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ============ CHARTS ============ */
+.bars-v{display:flex;align-items:flex-end;gap:12px;height:150px;padding-top:8px}
+.bars-v .bv{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end}
+.bars-v .bar{width:100%;max-width:42px;border-radius:8px 8px 4px 4px;background:linear-gradient(180deg,var(--blue),#3E86F2);position:relative;transition:height .5s ease;min-height:4px}
+.bars-v .bar.dim{background:var(--sky-2)}
+.bars-v .bar .val{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10.5px;font-weight:800;color:var(--blue-ink);font-family:var(--font-mono)}
+.bars-v .lbl{font-size:11px;font-weight:700;color:var(--ink-3)}
+.bars-h .bh{margin-bottom:12px}
+.bars-h .bh:last-child{margin-bottom:0}
+.bars-h .bh-top{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px}
+.bars-h .bh-top span:last-child{font-family:var(--font-mono);color:var(--ink-2);font-size:11.5px}
+.bars-h .track{height:9px;background:var(--sky-3);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bars-h .fill{height:100%;background:var(--blue);border-radius:6px;transition:width .6s ease}
+.progress{height:8px;background:var(--sky-3);border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:90px}
+.progress i{display:block;height:100%;background:var(--blue);border-radius:6px}
+.donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.legend{font-size:12.5px;font-weight:700;display:flex;flex-direction:column;gap:8px}
+.legend span{display:flex;align-items:center;gap:8px;color:var(--ink-2)}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.legend b{color:var(--ink);margin-left:auto;font-family:var(--font-mono);font-size:12px}
+
+/* ============ MINI CALENDAR ============ */
+.minical{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.minical .mc-h{font-size:10.5px;font-weight:800;color:var(--ink-3);text-align:center;text-transform:uppercase;letter-spacing:.5px;padding-bottom:2px}
+.mc-d{aspect-ratio:1;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:1px solid transparent;gap:2px}
+.mc-d i{width:5px;height:5px;border-radius:50%}
+.mc-P{background:var(--sky);color:var(--blue-ink)}.mc-P i{background:var(--blue)}
+.mc-A{background:var(--slate-bg);color:var(--slate)}.mc-A i{background:var(--slate)}
+.mc-L{background:var(--sky-2);color:var(--blue-deep)}.mc-L i{background:var(--blue-deep)}
+.mc-W{background:transparent;color:var(--ink-3);border-color:var(--line)}
+.mc-H{background:var(--blue-deep);color:#fff}
+.mc-F{color:var(--line-2)}
+.mc-today{outline:2px solid var(--blue);outline-offset:1px}
+.cal-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;font-weight:700;color:var(--ink-2);margin-top:12px}
+.cal-legend span{display:flex;align-items:center;gap:5px}
+.cal-legend i{width:9px;height:9px;border-radius:3px}
+
+/* ============ MISC ============ */
+.list-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.list-row:last-child{border-bottom:none;padding-bottom:0}
+.list-row .lr-ico{width:38px;height:38px;border-radius:11px;background:var(--sky);display:grid;place-items:center;flex-shrink:0}
+.list-row .lr-ico svg{width:16px;height:16px;stroke:var(--blue)}
+.list-row .lr-main{min-width:0;flex:1}
+.list-row .lr-main b{font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-row .lr-main span{font-size:11.5px;color:var(--ink-3)}
+.empty{text-align:center;padding:40px 20px;color:var(--ink-3)}
+.empty svg{width:38px;height:38px;stroke:var(--line-2);margin-bottom:10px}
+.empty b{display:block;color:var(--ink-2);font-size:14px;margin-bottom:3px}
+.empty p{font-size:12.5px}
+.section-gap{margin-top:18px}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;font-size:13px}
+.kv dt{color:var(--ink-3);font-weight:700;font-size:12px}
+.kv dd{font-weight:600}
+.pin{color:var(--blue);font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;display:inline-flex;align-items:center;gap:4px}
+.ann-card{padding:16px 18px}
+.ann-card h4{font-family:var(--font-disp);font-size:15px;font-weight:700;margin:6px 0 4px}
+.ann-card p{font-size:13px;color:var(--ink-2)}
+.ann-meta{font-size:11.5px;color:var(--ink-3);margin-top:10px;display:flex;justify-content:space-between;align-items:center}
+.slip-table{min-width:0!important}
+.slip-table td{padding:8px 12px}
+.slip-total td{background:var(--sky-3);font-weight:800}
+.opening-card{padding:16px 18px}
+.opening-card h4{font-family:var(--font-disp);font-size:15px;font-weight:700;margin-bottom:2px}
+.opening-card .oc-meta{font-size:12px;color:var(--ink-3);font-weight:600}
+.opening-card .oc-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.dept-card{padding:18px}
+.dept-card .dc-ico{width:42px;height:42px;border-radius:12px;background:var(--sky);display:grid;place-items:center;margin-bottom:12px}
+.dept-card .dc-ico svg{width:18px;height:18px;stroke:var(--blue)}
+.dept-card h4{font-family:var(--font-disp);font-size:15px;font-weight:700}
+.dept-card .dc-head{font-size:12px;color:var(--ink-3);font-weight:600}
+.dept-card .dc-count{margin-top:10px;font-size:12.5px;font-weight:700;color:var(--blue-ink);background:var(--sky);display:inline-block;padding:3px 10px;border-radius:20px}
+
+/* ============ RESPONSIVE ============ */
+.scrim{position:fixed;inset:0;background:rgba(16,42,77,.4);z-index:55;display:none}
+@media (max-width:1020px){
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .grid-23,.grid-3{grid-template-columns:1fr}
+  .today-strip{grid-template-columns:1fr;gap:16px}
+  .ts-actions{flex-direction:row}
+}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:0;top:0;width:262px;transform:translateX(-105%);transition:transform .25s ease;box-shadow:var(--shadow-lift)}
+  .sidebar.open{transform:none}
+  .scrim.show{display:block}
+  .hamburger{display:flex}
+  .top-user-meta{display:none}
+  .top-search{width:150px}
+  .content{padding:16px 14px 70px}
+  .grid-2{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .ts-actions{flex-direction:column}
+}
+@media (max-width:820px){.role-switch select{max-width:96px}}
+@media (max-width:520px){.grid-4{grid-template-columns:1fr 1fr}.top-search{display:none}.role-switch{padding:0 8px}.role-switch select{max-width:74px;font-size:11px}}
+
+/* ---- info note (PEPSI) ---- */
+.info-note{display:flex;gap:12px;align-items:flex-start;background:linear-gradient(90deg,var(--sky-3),var(--sky));border:1px solid var(--sky-2);border-radius:12px;padding:13px 16px;margin-bottom:16px;font-size:12.5px;color:var(--ink-2);line-height:1.5}
+.info-note b{color:var(--ink)}
+.info-ico{flex-shrink:0;width:30px;height:30px;border-radius:9px;background:#fff;display:grid;place-items:center;box-shadow:var(--shadow)}
+.info-ico svg{width:16px;height:16px;stroke:var(--blue)}
+/* ---- progress bar ---- */
+.mini-prog{height:7px;border-radius:20px;background:var(--sky-2);overflow:hidden}
+.mini-prog i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,var(--blue),var(--blue-deep));transition:width .4s}
+.mini-prog.lg{height:10px}
+/* ---- exit manage ---- */
+.exit-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+@media (max-width:640px){.exit-grid{grid-template-columns:1fr}}
+.mini-title{font-size:12px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+.clear-list{display:flex;flex-direction:column;gap:8px}
+.clear-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s}
+.clear-row:hover{background:var(--sky-3)}
+.clear-row.done{background:var(--sky-3);border-color:var(--sky-2)}
+.clear-row span:first-of-type{flex:1}
+.clear-row input{width:17px;height:17px;accent-color:var(--blue)}
+.doc-chips{display:flex;flex-wrap:wrap;gap:8px}
+.doc-chip{display:inline-flex;align-items:center;gap:7px;background:var(--sky);border:1px solid var(--sky-2);color:var(--blue-ink);font-size:12px;font-weight:700;padding:7px 12px;border-radius:20px;cursor:pointer;transition:background .15s}
+.doc-chip:hover{background:var(--sky-2)}
+.doc-chip svg{width:13px;height:13px;stroke:var(--blue)}
+/* ---- letter preview ---- */
+.letter-preview{background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px 26px;max-height:44vh;overflow:auto}
+.letter-preview.big{max-height:58vh}
+.letter-preview .lp-head{text-align:center;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.letter-preview .lp-head b{display:block;font-family:var(--font-disp);font-size:16px;color:var(--ink)}
+.letter-preview .lp-head span{font-size:10.5px;color:var(--ink-2)}
+.letter-preview pre{white-space:pre-wrap;font-family:inherit;font-size:13px;line-height:1.7;color:var(--ink);margin:0}
+/* ---- offer adjust panel ---- */
+.adj-wrap{margin-top:12px}
+.adj-fields{margin-top:10px;padding:14px;border:1px dashed var(--line-2);border-radius:12px;background:var(--sky-3)}
+.adj-hint{display:block;margin-top:8px;font-size:11.5px;color:var(--ink-3)}
+
+/* =====================================================================
+   ✦ PREMIUM POLISH LAYER — blue-only, light, novice-friendly
+   ===================================================================== */
+:root{
+  --shadow-sm:0 1px 2px rgba(16,42,77,.06),0 1px 3px rgba(16,42,77,.04);
+  --shadow-md:0 4px 12px -4px rgba(16,42,77,.12),0 2px 6px -2px rgba(16,42,77,.08);
+  --shadow-lg:0 20px 48px -20px rgba(10,61,145,.34),0 6px 16px -8px rgba(10,61,145,.2);
+  --grad-blue:linear-gradient(135deg,#1F6FEA 0%,#0A3D91 100%);
+  --grad-num:linear-gradient(135deg,#0E4FB5,#1F6FEA);
+}
+/* page depth */
+body{background:
+  radial-gradient(1200px 520px at 85% -8%,rgba(20,101,224,.07),transparent 60%),
+  radial-gradient(900px 480px at -10% 10%,rgba(46,123,234,.06),transparent 55%),
+  var(--paper);
+  background-attachment:fixed;letter-spacing:-.1px}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--sky-2),var(--sky));border-radius:10px;border:3px solid var(--paper)}
+::-webkit-scrollbar-thumb:hover{background:var(--slate)}
+
+/* sidebar refinement */
+.sidebar{background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFF 100%);box-shadow:inset -1px 0 0 var(--line)}
+.brand-tile{box-shadow:0 6px 16px -4px rgba(20,101,224,.55),inset 0 1px 0 rgba(255,255,255,.35)}
+.brand-sub{color:var(--blue-ink);opacity:.7}
+.nav-group-label{padding:14px 12px 6px;opacity:.85}
+.nav-item{position:relative;border-radius:11px;padding:10px 12px}
+.nav-item::before{content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%) scaleY(0);width:4px;height:22px;border-radius:0 4px 4px 0;background:var(--grad-blue);transition:transform .18s}
+.nav-item.active{background:linear-gradient(90deg,var(--sky) 0%,rgba(231,240,254,.35) 100%);color:var(--blue-deep);font-weight:700;box-shadow:var(--shadow-sm)}
+.nav-item.active::before{transform:translateY(-50%) scaleY(1)}
+.nav-item:hover{transform:translateX(2px)}
+.nav-badge{background:var(--grad-blue);color:#fff;box-shadow:0 2px 6px -1px rgba(20,101,224,.5)}
+
+/* topbar */
+.topbar{background:rgba(255,255,255,.72);backdrop-filter:blur(14px) saturate(1.4);box-shadow:0 1px 0 var(--line),0 6px 20px -18px rgba(10,61,145,.4)}
+.top-title{font-size:18px}
+
+/* page head */
+.page-head h1{font-size:27px;letter-spacing:-.8px;background:linear-gradient(120deg,var(--ink),#22406B);-webkit-background-clip:text;background-clip:text}
+.page-head .hint{font-size:13px;color:var(--ink-2)}
+
+/* cards */
+.card{border-radius:16px;box-shadow:var(--shadow-sm);transition:box-shadow .22s,transform .22s,border-color .22s}
+.card:hover{box-shadow:var(--shadow-md)}
+.card-title{font-size:15.5px}
+
+/* stat cards — accent + gradient numerals */
+.stat{border-radius:16px;overflow:hidden}
+.stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--grad-blue);opacity:.9}
+.stat::after{content:"";position:absolute;right:-30px;bottom:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(20,101,224,.07),transparent 70%)}
+.stat{padding-left:22px}
+.stat .lbl svg{width:15px;height:15px}
+.stat .num{background:var(--grad-num);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-size:32px}
+.stat .num small{-webkit-text-fill-color:var(--ink-3);color:var(--ink-3)}
+.stat:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}
+
+/* buttons */
+.btn{border-radius:11px;letter-spacing:-.1px}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--grad-blue);box-shadow:0 6px 16px -6px rgba(20,101,224,.6),inset 0 1px 0 rgba(255,255,255,.22)}
+.btn-primary:hover{box-shadow:0 10px 22px -8px rgba(20,101,224,.72);transform:translateY(-1px)}
+.btn-soft:hover,.btn-ghost:hover{background:var(--sky)}
+.btn:focus-visible,.input:focus,textarea:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(20,101,224,.18);border-color:var(--blue)}
+
+/* inputs */
+.input,textarea,select{border-radius:10px;transition:box-shadow .15s,border-color .15s}
+
+/* tables */
+thead th{background:linear-gradient(180deg,#F5F9FF,#EEF4FD);position:sticky;top:0;z-index:1}
+tbody tr:hover{background:linear-gradient(90deg,var(--sky-3),rgba(245,249,255,.4))}
+.tbl-wrap{border-radius:0 0 16px 16px}
+
+/* chips — subtle depth */
+.chip{border:1px solid transparent;letter-spacing:.1px}
+.chip-solid{background:var(--grad-blue);color:#fff;box-shadow:0 2px 6px -2px rgba(20,101,224,.45)}
+.chip-sky{background:var(--sky);color:var(--blue-ink);border-color:var(--sky-2)}
+.chip-deep{background:linear-gradient(135deg,#0A3D91,#0E4FB5);color:#fff}
+.chip-line{background:#fff;color:var(--ink-2);border-color:var(--line-2)}
+.chip-slate{background:var(--slate-bg);color:var(--slate);border-color:#DCE5F1}
+
+/* today strip — richer */
+.today-strip{background:linear-gradient(120deg,#0A3D91 0%,#1465E0 52%,#3E86F2 100%);box-shadow:0 22px 50px -22px rgba(10,61,145,.7),inset 0 1px 0 rgba(255,255,255,.15);border-radius:20px}
+.today-strip::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.09) 1px,transparent 1px);background-size:22px 22px;opacity:.6;pointer-events:none}
+
+/* modal polish */
+.modal-box,#modalBox{border-radius:18px;box-shadow:var(--shadow-lg)}
+
+/* smoother view entrance */
+.view.active{animation:viewIn .32s cubic-bezier(.22,.61,.36,1)}
+
+/* avatars a touch richer */
+.avatar{box-shadow:inset 0 0 0 1px rgba(20,101,224,.12)}
+.info-ico{box-shadow:var(--shadow-sm)}
+
+@media (max-width:820px){.page-head h1{font-size:23px}.stat .num{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="scrim" id="scrim" onclick="closeSidebar()"></div>
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-tile">R</div>
+      <div>
+        <div class="brand-name">RA<span>MP</span></div>
+        <div class="brand-sub">Manage · Recruit · Grow</div>
+      </div>
+    </div>
+    <nav id="sideNav"></nav>
+    <div class="sidebar-foot" id="sideFoot"></div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <header class="topbar">
+      <button class="hamburger" onclick="openSidebar()" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="#5B77A0" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <div class="top-title" id="topTitle">Dashboard</div>
+      <div class="top-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="globalSearch" type="text" placeholder="Search employee by name or ID…">
+      </div>
+      <div class="role-switch" title="Preview as role">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#5B77A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <select id="roleSwitch" onchange="switchRole(this.value)"></select>
+      </div>
+      <div style="position:relative">
+        <button class="icon-btn" id="bellBtn" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="dot" id="bellDot"></span>
+        </button>
+        <div class="notif-panel" id="notifPanel"></div>
+      </div>
+      <button class="top-user" id="topUser" onclick="openEmpProfile(DB.me)">
+        <span class="avatar" id="topAvatar" style="width:32px;height:32px;font-size:12px"></span>
+        <span class="top-user-meta" id="topUserMeta"></span>
+      </button>
+    </header>
+
+    <main class="content">
+      <section class="view" id="view-dashboard"></section>
+      <section class="view" id="view-employees"></section>
+      <section class="view" id="view-attendance"></section>
+      <section class="view" id="view-leaves"></section>
+      <section class="view" id="view-payroll"></section>
+      <section class="view" id="view-exit"></section>
+      <section class="view" id="view-recruitment"></section>
+      <section class="view" id="view-performance"></section>
+      <section class="view" id="view-assets"></section>
+      <section class="view" id="view-expenses"></section>
+      <section class="view" id="view-documents"></section>
+      <section class="view" id="view-announcements"></section>
+      <section class="view" id="view-holidays"></section>
+      <section class="view" id="view-departments"></section>
+      <section class="view" id="view-reports"></section>
+      <section class="view" id="view-settings"></section>
+    </main>
+  </div>
+</div>
+
+<!-- ================= MODAL SHELL ================= -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBox">
+    <div class="modal-head">
+      <h3 id="modalTitle">Title</h3>
+      <button class="x" onclick="closeModal()" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="toast-zone" id="toastZone"></div>
+
+<script>
+/* =================================================================
+   RAMP — Recruitment And Management of People · single-file preview build
+   All data lives in memory (DB object). No backend needed for demo.
+   ================================================================= */
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------------- ICONS (inline, stroke) ---------------- */
+const I=(p,extra="")=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extra}>${p}</svg>`;
+const ICON={
+grid:I('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'),
+users:I('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'),
+clock:I('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+cal:I('<rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+banknote:I('<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>'),
+briefcase:I('<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'),
+target:I('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>'),
+monitor:I('<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>'),
+receipt:I('<path d="M4 3h16v18l-2.5-1.5L15 21l-2.5-1.5L10 21l-2.5-1.5L5 21l-1-.5z"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
+file:I('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>'),
+mega:I('<path d="m3 11 18-7-4 16-5.5-4.5L8 19l-1-5z"/>'),
+sun:I('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+building:I('<rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M9 22v-4h6v4M9 6h.01M15 6h.01M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/>'),
+chart:I('<path d="M3 3v18h18"/><path d="M7 15v-4M12 15V7M17 15v-7"/>'),
+gear:I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.76l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.76-.32 1.6 1.6 0 0 0-1 1.47V21a2 2 0 1 1-4 0v-.09a1.6 1.6 0 0 0-1-1.47 1.6 1.6 0 0 0-1.76.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.76 1.6 1.6 0 0 0-1.47-1H3a2 2 0 1 1 0-4h.09a1.6 1.6 0 0 0 1.47-1 1.6 1.6 0 0 0-.32-1.76l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.76.32h.01a1.6 1.6 0 0 0 1-1.47V3a2 2 0 1 1 4 0v.09a1.6 1.6 0 0 0 1 1.47 1.6 1.6 0 0 0 1.76-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.76v.01a1.6 1.6 0 0 0 1.47 1H21a2 2 0 1 1 0 4h-.09a1.6 1.6 0 0 0-1.47 1z"/>'),
+plus:I('<path d="M12 5v14M5 12h14"/>'),
+check:I('<path d="M20 6 9 17l-5-5"/>'),
+x:I('<path d="M18 6 6 18M6 6l12 12"/>'),
+download:I('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/>'),
+edit:I('<path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>'),
+login:I('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5M15 12H3"/>'),
+logout:I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>'),
+eye:I('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>'),
+gift:I('<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/>'),
+bell:I('<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>'),
+search:I('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
+send:I('<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>'),
+star:I('<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/>'),
+inbox:I('<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z"/>'),
+  plug:I('<path d="M9 2v6M15 2v6M7 8h10v3a5 5 0 0 1-10 0z"/><path d="M12 16v6"/>'),
+  refresh:I('<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>'),
+  upload:I('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5M12 4v12"/>'),
+};
+const ic=n=>ICON[n]||"";
+
+/* ---------------- DATE HELPERS ---------------- */
+const TODAY=new Date(2026,6,12);            // Sun 12 Jul 2026 (demo anchor)
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOW=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const TODAY_ISO=iso(TODAY);
+function fdate(s){ if(!s) return "—"; const [y,m,d]=s.split("-").map(Number); return `${String(d).padStart(2,"0")} ${MONTHS[m-1].slice(0,3)} ${y}`; }
+function fdateShort(s){ const [y,m,d]=s.split("-").map(Number); return `${String(d).padStart(2,"0")} ${MONTHS[m-1].slice(0,3)}`; }
+function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/864e5)+1; }
+const money=n=>"₹"+Number(n||0).toLocaleString("en-IN");
+
+/* Amount in words (Indian system) — used on payslip */
+function inWords(n){
+  n=Math.round(n); if(n===0)return "Zero";
+  const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+  const b=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+  const two=x=>x<20?a[x]:b[Math.floor(x/10)]+(x%10?" "+a[x%10]:"");
+  const three=x=>(x>99?a[Math.floor(x/100)]+" Hundred"+(x%100?" ":""):"")+(x%100?two(x%100):"");
+  let out="",cr=Math.floor(n/1e7);n%=1e7;const l=Math.floor(n/1e5);n%=1e5;const t=Math.floor(n/1e3);n%=1e3;
+  if(cr)out+=three(cr)+" Crore ";if(l)out+=three(l)+" Lakh ";if(t)out+=three(t)+" Thousand ";if(n)out+=three(n);
+  return out.trim();
+}
+
+/* ---------------- AVATARS (blue duotone pairs) ---------------- */
+const AV=[["#E7F0FE","#1465E0"],["#DDEBFF","#0A3D91"],["#EAF3FF","#2F7BEA"],["#E2EDFD","#0E4FB5"],["#EDF4FF","#5A8FE8"],["#E5EFFF","#1F5FC9"]];
+const initials=n=>n.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+function avatar(name,seed,lg){ const [bg,fg]=AV[(seed??name.length)%AV.length]; return `<span class="avatar${lg?" lg":""}" style="background:${bg};color:${fg}">${initials(name)}</span>`; }
+
+/* =================================================================
+   DATABASE (in-memory demo data)
+   ================================================================= */
+const DB={
+  me:"EMP001",
+  settings:{
+    company:"ITSYBIZZ AI Private Limited", brand:"RAMP", tagline:"Recruitment And Management of People",
+    address:"121-B, 2nd Floor, HSIIDC Industrial Area, Sector 31, Faridabad, Haryana 121003",
+    email:"hr@itsybizz.com", phone:"+91 98110 00000", cin:"U72900HR2021PTC000000",
+    cl:12, sl:10, el:18, weekOff:["Sun"], inTime:"09:30",
+    needApproval:true, selfCheckin:true, emailAlerts:true, lateAfter:"09:45",
+    // Asset Management external API (assets sync from separate application)
+    assetApi:{ url:"https://assetsapi.itsybizz.com/api/v1/assets", key:"", enabled:true, lastSync:"2026-07-11 18:40" },
+    offerTemplate:
+`{{DATE}}
+
+Dear {{NAME}},
+
+We are pleased to offer you the position of {{ROLE}} in the {{DEPT}} department at {{COMPANY}}. Your employment will be based at our office located at {{ADDRESS}}.
+
+Your annual Cost to Company (CTC) will be {{CTC_WORDS}} ({{CTC}}) per annum, structured as detailed in the enclosed salary annexure. Your tentative date of joining will be {{JOIN}}.
+
+This offer is subject to verification of your documents and satisfactory completion of background checks. Please sign and return a copy of this letter as a token of your acceptance.
+
+We look forward to welcoming you to the team.
+
+Warm regards,
+{{HR_NAME}}
+{{HR_ROLE}}
+{{COMPANY}}`,
+    exitTemplates:{
+      "Relieving Letter":
+`{{DATE}}
+
+TO WHOMSOEVER IT MAY CONCERN
+
+This is to certify that {{NAME}} (Employee ID: {{EMPID}}) was employed with {{COMPANY}} as {{ROLE}} in the {{DEPT}} department from {{JOIN}} to {{LASTDAY}}.
+
+{{NAME}} has been relieved from all duties and responsibilities with effect from the close of business on {{LASTDAY}}, and has completed all exit formalities including handover and no-dues clearance.
+
+We thank {{NAME}} for the contributions made during the tenure and wish them the very best for future endeavours.
+
+For {{COMPANY}}
+{{HR_NAME}}
+{{HR_ROLE}}`,
+      "Experience Letter":
+`{{DATE}}
+
+EXPERIENCE CERTIFICATE
+
+This is to certify that {{NAME}} (Employee ID: {{EMPID}}) served {{COMPANY}} as {{ROLE}} in the {{DEPT}} department from {{JOIN}} to {{LASTDAY}}.
+
+During this period, {{NAME}} was found to be sincere, hardworking and professional in conduct. Their performance and contribution to the organisation were satisfactory throughout the tenure.
+
+We wish {{NAME}} continued success in all future assignments.
+
+For {{COMPANY}}
+{{HR_NAME}}
+{{HR_ROLE}}`,
+      "Full & Final Statement":
+`{{DATE}}
+
+FULL & FINAL SETTLEMENT STATEMENT
+
+Employee : {{NAME}} ({{EMPID}})
+Designation : {{ROLE}}, {{DEPT}}
+Date of Joining : {{JOIN}}
+Last Working Day : {{LASTDAY}}
+
+The full and final settlement has been computed as per company policy, covering salary payable up to the last working day, leave encashment and applicable statutory dues, net of recoveries and notice adjustments.
+
+Net amount payable: {{FNF_WORDS}} ({{FNF}}).
+
+This settlement is final and no further dues are payable by either party.
+
+For {{COMPANY}}
+{{HR_NAME}}
+{{HR_ROLE}}`,
+      "No-Dues Clearance":
+`{{DATE}}
+
+NO-DUES CLEARANCE CERTIFICATE
+
+Employee : {{NAME}} ({{EMPID}})
+Designation : {{ROLE}}, {{DEPT}}
+Last Working Day : {{LASTDAY}}
+
+This is to confirm that {{NAME}} has cleared all dues and returned all company assets. Clearance has been obtained from IT, Finance, Admin, HR and the Reporting Manager. No dues are pending against the employee.
+
+For {{COMPANY}}
+{{HR_NAME}}
+{{HR_ROLE}}`,
+    },
+  },
+  departments:[
+    {id:"D1",name:"Engineering",head:"Rohit Verma"},
+    {id:"D2",name:"Production & IoT",head:"Amit Kumar"},
+    {id:"D3",name:"Sales & Marketing",head:"Vikas Malik"},
+    {id:"D4",name:"HR & Admin",head:"Aarti Sharma"},
+    {id:"D5",name:"Accounts",head:"Nitin Saini"},
+    {id:"D6",name:"Support",head:"Manish Rawat"},
+  ],
+  employees:[
+    {id:"EMP001",name:"Pankaj Shukla",dept:"Engineering",role:"Co-founder & CTO",email:"pankaj@itsybizz.com",phone:"98110 11001",join:"2021-03-12",dob:"1992-07-18",salary:150000,status:"Active",access:"HR Admin",gender:"M"},
+    {id:"EMP002",name:"Aarti Sharma",dept:"HR & Admin",role:"HR Manager",email:"aarti@itsybizz.com",phone:"98110 11002",join:"2022-01-10",dob:"1994-07-21",salary:60000,status:"Active",access:"HR Admin",gender:"F"},
+    {id:"EMP003",name:"Rohit Verma",dept:"Engineering",role:"Sr. MERN Developer",email:"rohit@itsybizz.com",phone:"98110 11003",join:"2022-06-01",dob:"1995-01-11",salary:85000,status:"Active",access:"Employee",gender:"M"},
+    {id:"EMP004",name:"Neha Gupta",dept:"Engineering",role:"Frontend Developer",email:"neha@itsybizz.com",phone:"98110 11004",join:"2023-02-15",dob:"1997-08-02",salary:55000,status:"Active",access:"Employee",gender:"F"},
+    {id:"EMP005",name:"Amit Kumar",dept:"Production & IoT",role:"IoT Engineer",email:"amit@itsybizz.com",phone:"98110 11005",join:"2022-09-05",dob:"1993-11-30",salary:65000,status:"Active",access:"Employee",gender:"M"},
+    {id:"EMP006",name:"Sunil Yadav",dept:"Production & IoT",role:"PLC Technician",email:"sunil@itsybizz.com",phone:"98110 11006",join:"2023-04-18",dob:"1990-05-25",salary:38000,status:"Active",access:"Employee",gender:"M"},
+    {id:"EMP007",name:"Priya Singh",dept:"Accounts",role:"Accounts Executive",email:"priya@itsybizz.com",phone:"98110 11007",join:"2023-01-09",dob:"1996-02-14",salary:42000,status:"Active",access:"Finance Representative",gender:"F"},
+    {id:"EMP008",name:"Vikas Malik",dept:"Sales & Marketing",role:"Sales Manager",email:"vikas@itsybizz.com",phone:"98110 11008",join:"2021-11-22",dob:"1989-09-09",salary:70000,status:"Active",access:"Employee",gender:"M"},
+    {id:"EMP009",name:"Kirti Chauhan",dept:"Sales & Marketing",role:"Sales Executive",email:"kirti@itsybizz.com",phone:"98110 11009",join:"2024-03-04",dob:"1998-12-01",salary:35000,status:"Active",access:"Employee",gender:"F"},
+    {id:"EMP010",name:"Deepak Joshi",dept:"Engineering",role:"Backend Developer",email:"deepak@itsybizz.com",phone:"98110 11010",join:"2023-08-21",dob:"1996-06-17",salary:72000,status:"Active",access:"Employee",gender:"M"},
+    {id:"EMP011",name:"Manish Rawat",dept:"Support",role:"Support Engineer",email:"manish@itsybizz.com",phone:"98110 11011",join:"2024-01-15",dob:"1997-03-08",salary:32000,status:"Active",access:"Employee",gender:"M"},
+    {id:"EMP012",name:"Pooja Bansal",dept:"HR & Admin",role:"HR Executive",email:"pooja@itsybizz.com",phone:"98110 11012",join:"2024-06-10",dob:"1999-10-19",salary:30000,status:"Active",access:"HR Representative",gender:"F"},
+    {id:"EMP013",name:"Arjun Mehta",dept:"Engineering",role:"QA Engineer",email:"arjun@itsybizz.com",phone:"98110 11013",join:"2023-10-02",dob:"1995-04-27",salary:48000,status:"Active",access:"Employee",gender:"M"},
+    {id:"EMP014",name:"Sanya Kapoor",dept:"Engineering",role:"UI/UX Designer",email:"sanya@itsybizz.com",phone:"98110 11014",join:"2024-02-19",dob:"1998-01-23",salary:52000,status:"Active",access:"Employee",gender:"F"},
+    {id:"EMP015",name:"Ravi Prakash",dept:"Production & IoT",role:"Field Engineer",email:"ravi@itsybizz.com",phone:"98110 11015",join:"2023-12-01",dob:"1994-08-14",salary:36000,status:"Active",access:"Employee",gender:"M"},
+    {id:"EMP016",name:"Nitin Saini",dept:"Accounts",role:"Accountant",email:"nitin@itsybizz.com",phone:"98110 11016",join:"2022-04-11",dob:"1991-12-05",salary:45000,status:"Active",access:"Finance Representative",gender:"M"},
+    {id:"EMP017",name:"Shreya Iyer",dept:"Sales & Marketing",role:"Content & Marketing",email:"shreya@itsybizz.com",phone:"98110 11017",join:"2024-08-05",dob:"1999-07-28",salary:40000,status:"Active",access:"Employee",gender:"F"},
+    {id:"EMP018",name:"Harsh Vardhan",dept:"Engineering",role:"DevOps Engineer",email:"harsh@itsybizz.com",phone:"98110 11018",join:"2024-05-20",dob:"1996-11-11",salary:78000,status:"Active",access:"Employee",gender:"M"},
+  ],
+  /* today attendance: P=present, A=absent, L=leave, ""=not marked */
+  attendance:{
+    EMP001:{st:"P",in:"09:12",out:""}, EMP002:{st:"P",in:"09:25",out:""}, EMP003:{st:"P",in:"09:31",out:""},
+    EMP004:{st:"P",in:"09:05",out:""}, EMP005:{st:"P",in:"08:58",out:""}, EMP006:{st:"A",in:"",out:""},
+    EMP007:{st:"P",in:"09:40",out:""}, EMP008:{st:"P",in:"09:15",out:""}, EMP009:{st:"L",in:"",out:""},
+    EMP010:{st:"P",in:"09:22",out:""}, EMP011:{st:"",in:"",out:""},        EMP012:{st:"",in:"",out:""},
+    EMP013:{st:"P",in:"09:36",out:""}, EMP014:{st:"P",in:"09:08",out:""}, EMP015:{st:"L",in:"",out:""},
+    EMP016:{st:"P",in:"09:29",out:""}, EMP017:{st:"P",in:"09:44",out:""}, EMP018:{st:"P",in:"09:02",out:""},
+  },
+  leaveBalance:{}, /* filled at init: {empId:{CL,SL,EL}} */
+  leaves:[
+    {id:"LV-1043",emp:"EMP004",type:"Casual",from:"2026-07-15",to:"2026-07-16",days:2,reason:"Family function at home",status:"Pending",applied:"2026-07-10"},
+    {id:"LV-1042",emp:"EMP010",type:"Sick",from:"2026-07-14",to:"2026-07-14",days:1,reason:"Fever, doctor advised rest",status:"Pending",applied:"2026-07-11"},
+    {id:"LV-1041",emp:"EMP013",type:"Earned",from:"2026-07-20",to:"2026-07-24",days:5,reason:"Family trip to Nainital",status:"Pending",applied:"2026-07-08"},
+    {id:"LV-1040",emp:"EMP009",type:"Casual",from:"2026-07-10",to:"2026-07-13",days:4,reason:"Sister's wedding",status:"Approved",applied:"2026-07-02"},
+    {id:"LV-1039",emp:"EMP015",type:"Sick",from:"2026-07-12",to:"2026-07-12",days:1,reason:"Back pain",status:"Approved",applied:"2026-07-11"},
+    {id:"LV-1038",emp:"EMP003",type:"Earned",from:"2026-06-22",to:"2026-06-24",days:3,reason:"Personal work",status:"Approved",applied:"2026-06-15"},
+    {id:"LV-1037",emp:"EMP017",type:"Casual",from:"2026-06-19",to:"2026-06-19",days:1,reason:"Bank & documentation work",status:"Rejected",applied:"2026-06-17"},
+    {id:"LV-1036",emp:"EMP001",type:"Casual",from:"2026-06-05",to:"2026-06-05",days:1,reason:"Client visit — personal vehicle",status:"Approved",applied:"2026-06-03"},
+  ],
+  /* payroll status per month */
+  payroll:{ "2026-06":{status:"Paid",paidOn:"2026-07-01",overrides:{}}, "2026-07":{status:"Pending",paidOn:"",overrides:{}} },
+  paidRows:{ "2026-06":"ALL", "2026-07":[] },
+  openings:[
+    {id:"JOB-07",title:"MERN Stack Developer",dept:"Engineering",positions:2,exp:"2–4 yrs",status:"Open",posted:"2026-06-20"},
+    {id:"JOB-08",title:"IoT Field Engineer",dept:"Production & IoT",positions:1,exp:"1–3 yrs",status:"Open",posted:"2026-06-28"},
+    {id:"JOB-06",title:"HR Executive",dept:"HR & Admin",positions:1,exp:"0–2 yrs",status:"Closed",posted:"2026-05-02"},
+    {id:"JOB-09",title:"Sales Executive",dept:"Sales & Marketing",positions:2,exp:"1–2 yrs",status:"Open",posted:"2026-07-04"},
+  ],
+  candidates:[
+    {id:"CND-31",name:"Aman Tyagi",job:"MERN Stack Developer",phone:"99530 44121",exp:"3 yrs",stage:"Interview",applied:"2026-07-01"},
+    {id:"CND-32",name:"Ritu Saxena",job:"Sales Executive",phone:"88264 90112",exp:"2 yrs",stage:"Screening",applied:"2026-07-06"},
+    {id:"CND-33",name:"Kunal Bose",job:"IoT Field Engineer",phone:"70113 55890",exp:"1.5 yrs",stage:"Applied",applied:"2026-07-09"},
+    {id:"CND-30",name:"Megha Jain",job:"MERN Stack Developer",phone:"98991 23405",exp:"4 yrs",stage:"Offer",applied:"2026-06-25"},
+    {id:"CND-34",name:"Tarun Khanna",job:"Sales Executive",phone:"96540 78123",exp:"1 yr",stage:"Applied",applied:"2026-07-10"},
+    {id:"CND-29",name:"Divya Nair",job:"IoT Field Engineer",phone:"95822 66710",exp:"2 yrs",stage:"Interview",applied:"2026-06-30"},
+    {id:"CND-28",name:"Sahil Anand",job:"MERN Stack Developer",phone:"93125 40098",exp:"2 yrs",stage:"Rejected",applied:"2026-06-22"},
+    {id:"CND-25",name:"Isha Rana",job:"HR Executive",phone:"98730 12764",exp:"1 yr",stage:"Hired",applied:"2026-05-10"},
+  ],
+  goals:[
+    {id:"G1",emp:"EMP003",title:"Ship JCWMS v2 with OPC-UA live sync",due:"2026-09-30",progress:70},
+    {id:"G2",emp:"EMP005",title:"Sanmati machine agents uptime ≥ 99%",due:"2026-08-31",progress:85},
+    {id:"G3",emp:"EMP008",title:"Close ₹40L sales pipeline for Q3",due:"2026-09-30",progress:55},
+    {id:"G4",emp:"EMP011",title:"Bring avg. ticket resolution under 4 hrs",due:"2026-08-15",progress:40},
+    {id:"G5",emp:"EMP002",title:"Hire 3 engineers + 1 sales executive",due:"2026-08-31",progress:66},
+    {id:"G6",emp:"EMP007",title:"Move payroll & PF filings fully online",due:"2026-10-31",progress:30},
+  ],
+  reviews:[
+    {id:"R1",emp:"EMP003",cycle:"Q2 2026",rating:5,note:"Delivered JFCL digitization milestones ahead of plan."},
+    {id:"R2",emp:"EMP005",cycle:"Q2 2026",rating:4,note:"Strong ownership of EKC machine integrations."},
+    {id:"R3",emp:"EMP009",cycle:"Q2 2026",rating:3,note:"Meeting targets; needs better follow-up discipline."},
+    {id:"R4",emp:"EMP014",cycle:"Q2 2026",rating:4,note:"Dashboard redesign well received by clients."},
+  ],
+  assets:[
+    {id:"AST-014",name:"Dell Latitude 5430",type:"Laptop",tag:"LPT-014",emp:"EMP003",status:"Assigned",since:"2023-06-05",src:"api"},
+    {id:"AST-021",name:"MacBook Air M2",type:"Laptop",tag:"LPT-021",emp:"EMP001",status:"Assigned",since:"2023-01-12",src:"api"},
+    {id:"AST-007",name:"LG 24\" Monitor",type:"Monitor",tag:"MON-007",emp:"EMP004",status:"Assigned",since:"2023-03-02",src:"api"},
+    {id:"AST-002",name:"TSC TE244 Label Printer",type:"Printer",tag:"PRN-002",emp:"",status:"Available",since:"",src:"api"},
+    {id:"AST-033",name:"Kontrolix Dev Kit KX-1",type:"IoT Kit",tag:"KIT-KX1",emp:"EMP005",status:"Assigned",since:"2024-04-20",src:"api"},
+    {id:"AST-009",name:"HP ProBook 440",type:"Laptop",tag:"LPT-009",emp:"",status:"Available",since:"",src:"api"},
+    {id:"AST-012",name:"Samsung 27\" Monitor",type:"Monitor",tag:"MON-012",emp:"",status:"In Repair",since:"",src:"api"},
+    {id:"AST-041",name:"Jio 4G SIM (Field)",type:"SIM",tag:"SIM-J11",emp:"EMP015",status:"Assigned",since:"2024-01-08",src:"manual"},
+  ],
+  expenses:[
+    {id:"EXP-118",emp:"EMP005",title:"Site travel — JFCL Faridabad",cat:"Travel",amt:2450,date:"2026-07-09",status:"Pending"},
+    {id:"EXP-117",emp:"EMP008",title:"Client dinner — EKC team",cat:"Client Meeting",amt:8900,date:"2026-07-06",status:"Approved"},
+    {id:"EXP-116",emp:"EMP015",title:"Cab — Sanmati plant visit",cat:"Travel",amt:1200,date:"2026-07-03",status:"Paid"},
+    {id:"EXP-115",emp:"EMP006",title:"Wiring & connectors (PKG-03 panel)",cat:"Hardware",amt:640,date:"2026-07-02",status:"Pending"},
+    {id:"EXP-114",emp:"EMP017",title:"Social media ad boost",cat:"Marketing",amt:3500,date:"2026-06-28",status:"Rejected"},
+  ],
+  documents:[
+    {id:"DOC-201",emp:"EMP003",name:"Aadhaar Card",type:"Identity",date:"2022-06-01",status:"Verified"},
+    {id:"DOC-202",emp:"EMP003",name:"PAN Card",type:"Identity",date:"2022-06-01",status:"Verified"},
+    {id:"DOC-203",emp:"EMP003",name:"Offer Letter (signed)",type:"Employment",date:"2022-06-01",status:"Verified"},
+    {id:"DOC-204",emp:"EMP004",name:"Aadhaar Card",type:"Identity",date:"2023-02-15",status:"Verified"},
+    {id:"DOC-205",emp:"EMP004",name:"B.Tech Degree",type:"Education",date:"2023-02-15",status:"Pending"},
+    {id:"DOC-206",emp:"EMP012",name:"PAN Card",type:"Identity",date:"2024-06-10",status:"Pending"},
+    {id:"DOC-207",emp:"EMP018",name:"Relieving Letter (prev. co.)",type:"Employment",date:"2024-05-20",status:"Verified"},
+    {id:"DOC-208",emp:"EMP001",name:"PAN Card",type:"Identity",date:"2021-03-12",status:"Verified"},
+  ],
+  announcements:[
+    {id:"AN-12",title:"Independence Day holiday — 15 August",body:"Office will remain closed on Saturday, 15 August for Independence Day. Field visits scheduled that day stand cancelled.",by:"Aarti Sharma",date:"2026-07-10",pin:true},
+    {id:"AN-11",title:"New health insurance active from 1 August",body:"Group health cover (₹3L per employee) goes live on 1 Aug. Check your email for the enrolment form and add family members before 25 July.",by:"Aarti Sharma",date:"2026-07-08",pin:false},
+    {id:"AN-10",title:"Quarterly townhall — 25 July, 4 PM",body:"All-hands townhall in the conference room. Q2 results, JCI & JFCL project updates, and Q3 plan. Chai-samosa after. 🙂",by:"Pankaj Shukla",date:"2026-07-05",pin:false},
+    {id:"AN-09",title:"June payroll credited",body:"Salary for June 2026 has been credited to all bank accounts. Payslips are available in the Payroll section.",by:"Priya Singh",date:"2026-07-01",pin:false},
+  ],
+  holidays:[
+    {date:"2026-01-26",name:"Republic Day"},
+    {date:"2026-03-04",name:"Holi"},
+    {date:"2026-04-03",name:"Good Friday"},
+    {date:"2026-08-15",name:"Independence Day"},
+    {date:"2026-08-28",name:"Raksha Bandhan"},
+    {date:"2026-09-04",name:"Janmashtami"},
+    {date:"2026-10-02",name:"Gandhi Jayanti"},
+    {date:"2026-10-20",name:"Dussehra"},
+    {date:"2026-11-08",name:"Diwali"},
+    {date:"2026-11-09",name:"Govardhan Puja"},
+    {date:"2026-12-25",name:"Christmas Day"},
+  ],
+  notifications:[
+    {t:"Leave request from Neha Gupta",s:"Casual leave · 15–16 Jul · awaiting approval",ico:"cal",go:"leaves"},
+    {t:"Reimbursement claim from Amit Kumar",s:"₹2,450 · Site travel JFCL · pending",ico:"receipt",go:"expenses"},
+    {t:"July payroll not processed yet",s:"18 employees · due before 1 Aug",ico:"banknote",go:"payroll"},
+    {t:"Interview today — Aman Tyagi",s:"MERN Stack Developer · 3:00 PM",ico:"briefcase",go:"recruitment"},
+  ],
+  // Reusable salary structures HR Admin picks while making an offer
+  salaryStructures:[
+    {id:"SS1",name:"Standard (Engineering)",basicPct:50,hraPct:20,specialPct:30,pf:true,pt:200,gratuity:true},
+    {id:"SS2",name:"Sales (with variable)",basicPct:45,hraPct:18,specialPct:37,pf:true,pt:200,gratuity:true},
+    {id:"SS3",name:"Intern / Contract",basicPct:60,hraPct:15,specialPct:25,pf:false,pt:0,gratuity:false},
+  ],
+  offers:[], /* generated offers kept here in preview */
+  // ---- EXIT / OFFBOARDING ----
+  exits:[
+    {id:"EX-001",emp:"EMP015",type:"Resignation",reason:"Relocating to home town",applied:"2026-06-18",lastDay:"2026-07-18",status:"In Progress",
+      clearance:{IT:true,Finance:false,Admin:false,HR:true,Reporting:true},interviewDone:false,fnfAmount:0,fnfStatus:"Pending"},
+    {id:"EX-002",emp:"EMP009",type:"Resignation",reason:"Better opportunity",applied:"2026-05-28",lastDay:"2026-06-30",status:"Clearance",
+      clearance:{IT:true,Finance:true,Admin:true,HR:true,Reporting:false},interviewDone:true,fnfAmount:58200,fnfStatus:"Pending"},
+    {id:"EX-003",emp:"EMP011",type:"Resignation",reason:"Higher studies",applied:"2026-04-10",lastDay:"2026-05-10",status:"Completed",
+      clearance:{IT:true,Finance:true,Admin:true,HR:true,Reporting:true},interviewDone:true,fnfAmount:41500,fnfStatus:"Settled"},
+    {id:"EX-004",emp:"EMP016",type:"Termination",reason:"Performance",applied:"2026-06-25",lastDay:"2026-07-25",status:"In Progress",
+      clearance:{IT:false,Finance:false,Admin:false,HR:true,Reporting:true},interviewDone:false,fnfAmount:0,fnfStatus:"Pending"},
+  ],
+  exitDocs:[
+    {id:"DX-101",exit:"EX-001",name:"Resignation Letter — Ravi Prakash",type:"Resignation Letter",date:"2026-06-18",dir:"upload",size:"88 KB"},
+    {id:"DX-102",exit:"EX-002",name:"Resignation Letter — Kirti Chauhan",type:"Resignation Letter",date:"2026-05-28",dir:"upload",size:"64 KB"},
+    {id:"DX-103",exit:"EX-002",name:"No-Dues Clearance — Kirti Chauhan",type:"No-Dues Clearance",date:"2026-06-20",dir:"generated",size:"—"},
+    {id:"DX-104",exit:"EX-003",name:"Relieving Letter — Manish Rawat",type:"Relieving Letter",date:"2026-05-11",dir:"generated",size:"—"},
+    {id:"DX-105",exit:"EX-003",name:"Experience Letter — Manish Rawat",type:"Experience Letter",date:"2026-05-11",dir:"generated",size:"—"},
+    {id:"DX-106",exit:"EX-003",name:"Full & Final Statement — Manish Rawat",type:"Full & Final Statement",date:"2026-05-12",dir:"generated",size:"—"},
+  ],
+  exitGen:[], /* generated exit letters kept here in preview */
+  counters:{emp:19,lv:1044,exp:119,doc:209,an:13,cnd:35,job:10,ast:42,goal:7,ss:4,offer:1,exit:5,dx:107},
+};
+
+/* leave balances: quota minus approved days this year */
+(function initBalances(){
+  DB.employees.forEach(e=>{ DB.leaveBalance[e.id]={CL:DB.settings.cl,SL:DB.settings.sl,EL:DB.settings.el}; });
+  DB.leaves.filter(l=>l.status==="Approved").forEach(l=>{
+    const key=l.type==="Casual"?"CL":l.type==="Sick"?"SL":l.type==="Earned"?"EL":null;
+    if(key&&DB.leaveBalance[l.emp]) DB.leaveBalance[l.emp][key]=Math.max(0,DB.leaveBalance[l.emp][key]-l.days);
+  });
+})();
+
+const emp=id=>DB.employees.find(e=>e.id===id)||{name:"—",id};
+const empSeed=id=>DB.employees.findIndex(e=>e.id===id);
+function empCell(id){ const e=emp(id); return `<div class="emp-cell">${avatar(e.name,empSeed(id))}<div><div class="cell-main">${esc(e.name)}</div><div class="cell-sub mono">${e.id} · ${esc(e.dept||"")}</div></div></div>`; }
+
+/* salary breakup from monthly gross */
+function breakup(gross){
+  const basic=Math.round(gross*.5), hra=Math.round(gross*.2), special=gross-basic-hra;
+  const pf=basic>=15000?1800:Math.round(basic*.12), pt=gross>21000?200:0;
+  const tds=gross>90000?Math.round(gross*.06):gross>60000?Math.round(gross*.03):0;
+  return {basic,hra,special,pf,pt,tds,ded:pf+pt+tds,net:gross-pf-pt-tds};
+}
+</script>
+<script>
+/* =================================================================
+   UI PLUMBING — toast, modal, sidebar, router, notifications
+   ================================================================= */
+function toast(msg){
+  const z=$("#toastZone"), t=document.createElement("div");
+  t.className="toast"; t.innerHTML=ic("check")+esc(msg); z.appendChild(t);
+  setTimeout(()=>{t.style.opacity="0";t.style.transition="opacity .3s";setTimeout(()=>t.remove(),320);},2600);
+}
+function openModal({title,sub="",body,foot="",wide=false}){
+  $("#modalTitle").textContent=title; $("#modalSub").innerHTML=sub;
+  $("#modalBody").innerHTML=body; $("#modalFoot").innerHTML=foot||`<button class="btn btn-ghost" onclick="closeModal()">Close</button>`;
+  $("#modalBox").classList.toggle("wide",wide);
+  $("#modalOverlay").classList.add("open"); document.body.style.overflow="hidden";
+}
+function closeModal(){ $("#modalOverlay").classList.remove("open"); document.body.style.overflow=""; }
+$("#modalOverlay")?.addEventListener("click",e=>{ if(e.target.id==="modalOverlay") closeModal(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
+function confirmBox(title,msg,okLabel,fn){
+  window.__confirmFn=fn;
+  openModal({title, body:`<p style="font-size:13.5px;color:var(--ink-2)">${msg}</p>`,
+    foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="closeModal();window.__confirmFn()">${okLabel}</button>`});
+}
+function openSidebar(){ $("#sidebar").classList.add("open"); $("#scrim").classList.add("show"); }
+function closeSidebar(){ $("#sidebar").classList.remove("open"); $("#scrim").classList.remove("show"); }
+
+/* ---------------- NAVIGATION ---------------- */
+const NAV=[
+  {g:"Overview",items:[["dashboard","Dashboard","grid"]]},
+  {g:"People",items:[["employees","Employees","users"],["attendance","Attendance","clock"],["leaves","Leave","cal"],["payroll","Payroll","banknote"],["exit","Exit Process","logout"]]},
+  {g:"Workspace",items:[["recruitment","Recruitment","briefcase"],["performance","Performance","target"],["assets","Assets","monitor"],["expenses","Reimbursements","receipt"],["documents","Documents","file"]]},
+  {g:"Organisation",items:[["announcements","Announcements","mega"],["holidays","Holidays","sun"],["departments","Departments","building"],["reports","Reports","chart"],["settings","Settings","gear"]]},
+];
+const TITLES={dashboard:"Dashboard",employees:"Employees",attendance:"Attendance",leaves:"Leave Management",payroll:"Payroll",exit:"Exit & Offboarding",recruitment:"Recruitment",performance:"Performance",assets:"Assets",expenses:"Reimbursements",documents:"Documents",announcements:"Announcements",holidays:"Holidays",departments:"Departments",reports:"Reports",settings:"Settings"};
+let CURRENT="dashboard";
+
+/* ---------------- ROLES & PERMISSIONS ---------------- */
+const ROLES=["HR Admin","HR Representative","Finance Representative","Employee"];
+const ROLE_USER={"HR Admin":"EMP001","HR Representative":"EMP012","Finance Representative":"EMP007","Employee":"EMP003"};
+const ALL_VIEWS=NAV.flatMap(g=>g.items.map(i=>i[0]));
+const VIEWS={
+  "HR Admin":ALL_VIEWS,
+  "HR Representative":["dashboard","employees","attendance","leaves","exit","recruitment","performance","assets","expenses","documents","announcements","holidays","departments","reports"],
+  "Finance Representative":["dashboard","employees","payroll","exit","expenses","documents","reports"],
+  "Employee":["dashboard","attendance","leaves","payroll","exit","expenses","documents","announcements","holidays"],
+};
+const PERMS={
+  manageEmployee:["HR Admin","HR Representative"],
+  approveLeave:["HR Admin","HR Representative"],
+  recruit:["HR Admin","HR Representative"],
+  offer:["HR Admin"], salaryStructure:["HR Admin"],
+  approveExpense:["HR Admin","Finance Representative"],
+  clearExpense:["HR Admin","Finance Representative"],
+  runPayroll:["HR Admin","Finance Representative"],
+  assignAsset:["HR Admin","HR Representative"],
+  verifyDoc:["HR Admin","HR Representative"],
+  announce:["HR Admin","HR Representative"],
+  manageGoals:["HR Admin","HR Representative"],
+  manageExit:["HR Admin","HR Representative"],
+  clearExit:["HR Admin","HR Representative","Finance Representative"],
+  settings:["HR Admin"],
+};
+function myRole(){ return (emp(DB.me)||{}).access||"Employee"; }
+function allowedViews(){ return VIEWS[myRole()]||VIEWS["Employee"]; }
+function canView(id){ return allowedViews().includes(id); }
+function can(a){ return (PERMS[a]||[]).includes(myRole()); }
+function isEmployee(){ return myRole()==="Employee"; }
+const ROLE_BADGE={"HR Admin":"blue","HR Representative":"sky","Finance Representative":"slate","Employee":"soft"};
+
+function setUserChip(){
+  const me=emp(DB.me), r=myRole();
+  $("#topUserMeta").innerHTML=`<b>${esc(me.name)}</b><span>${esc(r)}</span>`;
+  $("#topAvatar").outerHTML=avatar(me.name,0).replace('class="avatar"','class="avatar" id="topAvatar" style="width:32px;height:32px;font-size:12px"');
+  $("#roleSwitch").innerHTML=ROLES.map(x=>`<option value="${x}"${x===r?" selected":""}>${x}</option>`).join("");
+  $("#sideFoot").innerHTML=`Signed in as <b>${esc(me.name)}</b><br>${esc(r)} · v1.1 Preview<br><span style="font-size:10px">© 2026 ITSYBIZZ AI Private Limited</span>`;
+}
+function switchRole(role){
+  DB.me=ROLE_USER[role]||"EMP003";
+  setUserChip(); buildSidebar(); renderNotifs();
+  go(canView(CURRENT)?CURRENT:"dashboard");
+  toast("Now previewing as "+role);
+}
+
+function buildSidebar(){
+  const pend=DB.leaves.filter(l=>l.status==="Pending").length;
+  const av=allowedViews();
+  $("#sideNav").innerHTML=NAV.map(g=>{
+    const items=g.items.filter(([id])=>av.includes(id));
+    if(!items.length) return "";
+    return `
+    <div class="nav-group">
+      <div class="nav-group-label">${g.g}</div>
+      ${items.map(([id,label,icn])=>`
+        <button class="nav-item${id===CURRENT?" active":""}" onclick="go('${id}')">
+          ${ic(icn)}<span>${label}</span>
+          ${id==="leaves"&&pend&&can("approveLeave")?`<span class="nav-badge">${pend}</span>`:""}
+        </button>`).join("")}
+    </div>`;}).join("");
+}
+function go(id){
+  if(!canView(id)) id="dashboard";
+  CURRENT=id;
+  $$(".view").forEach(v=>v.classList.remove("active"));
+  $("#view-"+id).classList.add("active");
+  $("#topTitle").textContent=TITLES[id];
+  buildSidebar(); RENDER[id](); closeSidebar();
+  window.scrollTo({top:0});
+}
+function refresh(){ buildSidebar(); RENDER[CURRENT](); renderNotifs(); }
+
+/* ---------------- NOTIFICATIONS ---------------- */
+function renderNotifs(){
+  const p=$("#notifPanel");
+  p.innerHTML=`<div class="notif-head"><span>Notifications</span><button onclick="clearNotifs()">Clear all</button></div>`+
+    (DB.notifications.length?DB.notifications.map((n,i)=>`
+      <div class="notif-item" onclick="go('${n.go}');toggleNotif(false)">
+        <span class="notif-ico">${ic(n.ico)}</span>
+        <div><p>${esc(n.t)}</p><span>${esc(n.s)}</span></div>
+      </div>`).join(""):`<div class="empty" style="padding:24px">${ic("bell")}<b>All caught up</b><p>No new notifications.</p></div>`);
+  $("#bellDot").style.display=DB.notifications.length?"block":"none";
+}
+function toggleNotif(force){ const p=$("#notifPanel"); p.classList.toggle("open",force!==undefined?force:!p.classList.contains("open")); }
+function clearNotifs(){ DB.notifications=[]; renderNotifs(); toast("Notifications cleared"); }
+$("#bellBtn").addEventListener("click",e=>{e.stopPropagation();toggleNotif();});
+document.addEventListener("click",e=>{ if(!e.target.closest("#notifPanel,#bellBtn")) toggleNotif(false); });
+function notify(t,s,icoName,goTo){ DB.notifications.unshift({t,s,ico:icoName,go:goTo}); renderNotifs(); }
+
+/* ---------------- GLOBAL SEARCH ---------------- */
+$("#globalSearch").addEventListener("input",e=>{
+  const q=e.target.value.trim();
+  if(!q) return;
+  if(CURRENT!=="employees") go("employees");
+  const f=$("#empSearch"); if(f){ f.value=q; f.dispatchEvent(new Event("input")); }
+});
+
+/* small building blocks */
+const pageHead=(h1,hint,actions="")=>`
+  <div class="page-head">
+    <div><h1>${h1}</h1><div class="hint">${hint}</div></div>
+    <div class="head-actions">${actions}</div>
+  </div>`;
+const statCard=(lbl,icn,num,trend)=>`
+  <div class="card stat"><div class="lbl">${ic(icn)}${lbl}</div><div class="num">${num}</div><div class="trend">${trend}</div></div>`;
+const chipFor=s=>({
+  "Present":'<span class="chip chip-solid">Present</span>',"Absent":'<span class="chip chip-slate">Absent</span>',
+  "On Leave":'<span class="chip chip-sky">On Leave</span>',"Not marked":'<span class="chip chip-line">Not marked</span>',
+  "Approved":'<span class="chip chip-solid">Approved</span>',"Pending":'<span class="chip chip-sky">Pending</span>',
+  "Rejected":'<span class="chip chip-slate">Rejected</span>',"Paid":'<span class="chip chip-deep">Paid</span>',
+  "Active":'<span class="chip chip-solid">Active</span>',"Inactive":'<span class="chip chip-slate">Inactive</span>',
+  "Open":'<span class="chip chip-solid">Open</span>',"Closed":'<span class="chip chip-slate">Closed</span>',
+  "Assigned":'<span class="chip chip-solid">Assigned</span>',"Available":'<span class="chip chip-sky">Available</span>',
+  "In Repair":'<span class="chip chip-slate">In Repair</span>',"Verified":'<span class="chip chip-solid">Verified</span>',
+  "Applied":'<span class="chip chip-line">Applied</span>',"Screening":'<span class="chip chip-sky">Screening</span>',
+  "Interview":'<span class="chip chip-sky">Interview</span>',"Offer":'<span class="chip chip-deep">Offer</span>',
+  "Hired":'<span class="chip chip-solid">Hired</span>',
+  "In Progress":'<span class="chip chip-sky">In Progress</span>',"Clearance":'<span class="chip chip-deep">Clearance</span>',
+  "Completed":'<span class="chip chip-solid">Completed</span>',"Withdrawn":'<span class="chip chip-slate">Withdrawn</span>',
+  "Settled":'<span class="chip chip-solid">Settled</span>',"Resignation":'<span class="chip chip-line">Resignation</span>',
+  "Termination":'<span class="chip chip-slate">Termination</span>',
+}[s]||`<span class="chip chip-line">${esc(s)}</span>`);
+
+/* =================================================================
+   RENDERERS
+   ================================================================= */
+const RENDER={};
+
+/* ---------------- DASHBOARD ---------------- */
+RENDER.dashboard=function(){
+  const total=DB.employees.filter(e=>e.status==="Active").length;
+  const att=Object.values(DB.attendance);
+  const present=att.filter(a=>a.st==="P").length, leave=att.filter(a=>a.st==="L").length,
+        absent=att.filter(a=>a.st==="A").length, unmarked=att.filter(a=>!a.st).length;
+  const pendLv=DB.leaves.filter(l=>l.status==="Pending").length;
+  const pendExp=DB.expenses.filter(x=>x.status==="Pending").length;
+  const openJobs=DB.openings.filter(o=>o.status==="Open").length;
+  const myAtt=DB.attendance[DB.me];
+  const pp=n=>Math.round(n/total*100);
+
+  const week=[["Mon",94],["Tue",96],["Wed",89],["Thu",92],["Fri",95],["Sat",83],["Sun",pp(present)]];
+  const upHol=DB.holidays.filter(h=>h.date>=TODAY_ISO).slice(0,4);
+  const bdays=DB.employees.map(e=>{const [,m,d]=e.dob.split("-").map(Number);let dt=new Date(2026,m-1,d);if(iso(dt)<TODAY_ISO)dt=new Date(2027,m-1,d);return {e,dt};})
+    .sort((a,b)=>a.dt-b.dt).slice(0,4);
+  const pendRows=DB.leaves.filter(l=>l.status==="Pending").slice(0,4);
+  const ann=[...DB.announcements].sort((a,b)=>(b.pin-a.pin)||(b.date<a.date?-1:1)).slice(0,3);
+
+  $("#view-dashboard").innerHTML=`
+  <div class="today-strip">
+    <div class="ts-date">
+      <div class="dow">${DOW[TODAY.getDay()]} · Week 28</div>
+      <div class="dt">${TODAY.getDate()} ${MONTHS[TODAY.getMonth()]} ${TODAY.getFullYear()}</div>
+      <div class="clock" id="liveClock">--:--</div>
+    </div>
+    <div class="pulse-wrap">
+      <div class="pulse-lbls">
+        <span><i style="background:#fff"></i>Present ${present}</span>
+        <span><i style="background:#9EC2FF"></i>On leave ${leave}</span>
+        <span><i style="background:rgba(13,42,88,.55)"></i>Absent ${absent}</span>
+        <span style="opacity:.7"><i style="background:rgba(255,255,255,.35)"></i>Not marked ${unmarked}</span>
+      </div>
+      <div class="pulse-bar">
+        <div class="pb-present" style="width:${pp(present)}%"></div>
+        <div class="pb-leave" style="width:${pp(leave)}%"></div>
+        <div class="pb-absent" style="width:${pp(absent)}%"></div>
+      </div>
+      <div class="pulse-sub">Company pulse — ${pp(present)}% of ${total} people are in today</div>
+    </div>
+    <div class="ts-actions">
+      ${myAtt.in&&!myAtt.out
+        ?`<button class="btn btn-white" onclick="checkOut('${DB.me}')">${ic("logout")} Check out · in at ${myAtt.in}</button>`
+        :myAtt.out
+        ?`<button class="btn btn-white" disabled>${ic("check")} Day done · ${myAtt.in}–${myAtt.out}</button>`
+        :`<button class="btn btn-white" onclick="checkIn('${DB.me}')">${ic("login")} Mark my attendance</button>`}
+      <button class="btn btn-glass" onclick="openApplyLeave()">${ic("cal")} Apply for leave</button>
+    </div>
+  </div>
+
+  <div class="grid grid-4">
+    ${statCard("Total employees","users",total,"<b>+2</b> joined this quarter")}
+    ${statCard("Present today","login",`${present}<small> / ${total}</small>`,`${pp(present)}% attendance`)}
+    ${statCard("Pending approvals","inbox",pendLv+pendExp,`${pendLv} leave · ${pendExp} expense`)}
+    ${statCard("Open positions","briefcase",openJobs,`${DB.candidates.filter(c=>!["Hired","Rejected"].includes(c.stage)).length} candidates in pipeline`)}
+  </div>
+
+  <div class="grid grid-23 section-gap">
+    <div style="display:grid;gap:14px">
+      <div class="card card-pad">
+        <div class="card-title">This week's attendance <span class="sub">% present per day</span></div>
+        <div class="bars-v" style="margin-top:18px">
+          ${week.map(([d,v])=>`<div class="bv"><div class="bar" style="height:${v}%"><span class="val">${v}</span></div><span class="lbl">${d}</span></div>`).join("")}
+        </div>
+      </div>
+      <div class="card card-pad">
+        <div class="card-title">Leave requests waiting for you <span class="link" onclick="go('leaves')">View all</span></div>
+        ${pendRows.length?`<div class="tbl-wrap" style="margin-top:8px"><table style="min-width:520px">
+          <tbody>${pendRows.map(l=>`
+            <tr><td>${empCell(l.emp)}</td>
+            <td><div class="cell-main">${l.type} · ${l.days}d</div><div class="cell-sub">${fdateShort(l.from)} → ${fdateShort(l.to)}</div></td>
+            <td><div class="row-actions">
+              <button class="btn btn-sm btn-primary" onclick="leaveAction('${l.id}','Approved')">${ic("check")} Approve</button>
+              <button class="btn btn-sm btn-slate" onclick="leaveAction('${l.id}','Rejected')">Reject</button>
+            </div></td></tr>`).join("")}</tbody></table></div>`
+        :`<div class="empty">${ic("check")}<b>Nothing pending</b><p>All leave requests are cleared.</p></div>`}
+      </div>
+    </div>
+
+    <div style="display:grid;gap:14px;align-content:start">
+      <div class="card card-pad">
+        <div class="card-title">Announcements <span class="link" onclick="go('announcements')">All</span></div>
+        <div style="margin-top:6px">${ann.map(a=>`
+          <div class="list-row"><span class="lr-ico">${ic("mega")}</span>
+          <div class="lr-main"><b>${esc(a.title)}</b><span>${fdate(a.date)} · ${esc(a.by)}</span></div>
+          ${a.pin?'<span class="pin">Pinned</span>':""}</div>`).join("")}</div>
+      </div>
+      <div class="card card-pad">
+        <div class="card-title">Upcoming holidays</div>
+        <div style="margin-top:6px">${upHol.map(h=>`
+          <div class="list-row"><span class="lr-ico">${ic("sun")}</span>
+          <div class="lr-main"><b>${esc(h.name)}</b><span>${fdate(h.date)} · ${DOW[new Date(h.date).getDay()]}</span></div></div>`).join("")}</div>
+      </div>
+      <div class="card card-pad">
+        <div class="card-title">Birthdays coming up</div>
+        <div style="margin-top:6px">${bdays.map(({e,dt})=>`
+          <div class="list-row"><span class="lr-ico">${ic("gift")}</span>
+          <div class="lr-main"><b>${esc(e.name)}</b><span>${dt.getDate()} ${MONTHS[dt.getMonth()].slice(0,3)} · ${esc(e.dept)}</span></div></div>`).join("")}</div>
+      </div>
+    </div>
+  </div>`;
+  tickClock();
+};
+let clockTimer=null;
+function tickClock(){
+  clearInterval(clockTimer);
+  const f=()=>{const el=$("#liveClock");if(!el)return;const n=new Date();el.textContent=n.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});};
+  f(); clockTimer=setInterval(f,1000);
+}
+
+/* ---------------- EMPLOYEES ---------------- */
+let empFilter={q:"",dept:"All",status:"All"};
+let expFilter={q:"",status:"All",cat:"All"};
+let assetFilter={q:"",type:"All",status:"All"};
+let recFilter={stage:"All",job:"All"};
+RENDER.employees=function(){
+  $("#view-employees").innerHTML=`
+  ${pageHead("Employees","Everyone in the company, in one list. Click a person to see their full profile.",
+    `<button class="btn btn-ghost" onclick="exportEmployeesCSV()">${ic("download")} Export CSV</button>
+     ${can("manageEmployee")?`<button class="btn btn-primary" onclick="openEmpForm()">${ic("plus")} Add employee</button>`:""}`)}
+  <div class="card">
+    <div class="card-pad" style="padding-bottom:0">
+      <div class="filter-bar">
+        <div class="search-inline">${ic("search")}<input id="empSearch" class="input" placeholder="Search name, ID, role…" value="${esc(empFilter.q)}"></div>
+        <select id="empDept" class="input">${["All",...DB.departments.map(d=>d.name)].map(d=>`<option ${d===empFilter.dept?"selected":""}>${d}</option>`).join("")}</select>
+        <select id="empStatus" class="input">${["All","Active","Inactive"].map(s=>`<option ${s===empFilter.status?"selected":""}>${s}</option>`).join("")}</select>
+        <div class="spacer"></div>
+        <span class="chip chip-sky" id="empCount"></span>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Employee</th><th>Role</th><th>Department</th><th>Joined</th><th>Phone</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+      <tbody id="empRows"></tbody>
+    </table></div>
+  </div>`;
+  const draw=()=>{
+    const q=empFilter.q.toLowerCase();
+    const rows=DB.employees.filter(e=>
+      (empFilter.dept==="All"||e.dept===empFilter.dept)&&
+      (empFilter.status==="All"||e.status===empFilter.status)&&
+      (!q||e.name.toLowerCase().includes(q)||e.id.toLowerCase().includes(q)||e.role.toLowerCase().includes(q)));
+    $("#empCount").textContent=rows.length+" people";
+    $("#empRows").innerHTML=rows.length?rows.map(e=>`
+      <tr>
+        <td><span class="link" onclick="openEmpProfile('${e.id}')" style="display:block">${empCell(e.id)}</span></td>
+        <td>${esc(e.role)}</td><td>${esc(e.dept)}</td><td>${fdate(e.join)}</td>
+        <td class="mono">${esc(e.phone)}</td><td>${chipFor(e.status)}</td>
+        <td><div class="row-actions">
+          <button class="btn btn-sm btn-soft" onclick="openEmpProfile('${e.id}')">${ic("eye")} View</button>
+          ${can("manageEmployee")?`<button class="btn btn-sm btn-ghost" onclick="openEmpForm('${e.id}')">${ic("edit")} Edit</button>`:""}
+        </div></td>
+      </tr>`).join(""):`<tr><td colspan="7"><div class="empty">${ic("users")}<b>No one matches</b><p>Try a different search or clear the filters.</p></div></td></tr>`;
+  };
+  $("#empSearch").addEventListener("input",e=>{empFilter.q=e.target.value;draw();});
+  $("#empDept").addEventListener("change",e=>{empFilter.dept=e.target.value;draw();});
+  $("#empStatus").addEventListener("change",e=>{empFilter.status=e.target.value;draw();});
+  draw();
+};
+
+/* ---------------- ATTENDANCE ---------------- */
+RENDER.attendance=function(){
+  const total=DB.employees.length, att=DB.attendance;
+  const vals=Object.values(att);
+  const present=vals.filter(a=>a.st==="P").length, leave=vals.filter(a=>a.st==="L").length,
+        absent=vals.filter(a=>a.st==="A").length, unmarked=vals.filter(a=>!a.st).length;
+  const stName={P:"Present",A:"Absent",L:"On Leave","":"Not marked"};
+  const selfOnly=isEmployee();
+  const roster=selfOnly?DB.employees.filter(e=>e.id===DB.me):DB.employees;
+  const selEmp=selfOnly?DB.me:(window.__attEmp||DB.me);
+
+  $("#view-attendance").innerHTML=`
+  ${pageHead("Attendance",selfOnly?"Mark your in and out with one tap and review your month at a glance.":"Mark today's in and out with one tap. The month view shows the full register for any employee.",
+    `<span class="chip chip-sky">${DOW[TODAY.getDay()]}, ${fdate(TODAY_ISO)}</span>`)}
+  ${selfOnly?`<div class="grid grid-3">
+    ${statCard("My status today","login",stName[att[DB.me].st]||"Not marked",att[DB.me].in?("in "+att[DB.me].in):"tap check-in below")}
+    ${statCard("Days present · Jul","clock",Math.max(0,new Date().getDate()-3),"this month so far")}
+    ${statCard("On leave · Jul","cal",DB.leaves.filter(l=>l.emp===DB.me&&l.status==="Approved").reduce((s,l)=>s+l.days,0),"approved leave days")}
+  </div>`:`<div class="grid grid-4">
+    ${statCard("Present","login",present,`${Math.round(present/total*100)}% of team`)}
+    ${statCard("On leave","cal",leave,"approved leaves today")}
+    ${statCard("Absent","logout",absent,"no leave applied")}
+    ${statCard("Not marked","clock",unmarked,"waiting for check-in")}
+  </div>`}
+  <div class="grid grid-23 section-gap">
+    <div class="card">
+      <div class="card-pad" style="padding-bottom:10px"><div class="card-title">Today's register <span class="sub">check-in opens ${DB.settings.inTime}, late after ${DB.settings.lateAfter}</span></div></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Employee</th><th>Status</th><th>In</th><th>Out</th><th style="text-align:right">Mark</th></tr></thead>
+        <tbody>${roster.map(e=>{const a=att[e.id];return `
+          <tr><td>${empCell(e.id)}</td><td>${chipFor(stName[a.st])}</td>
+          <td class="mono">${a.in||"—"}</td><td class="mono">${a.out||"—"}</td>
+          <td><div class="row-actions">
+            ${a.st===""?`<button class="btn btn-sm btn-primary" onclick="checkIn('${e.id}')">${ic("login")} Check in</button>
+                         <button class="btn btn-sm btn-slate" onclick="markAbsent('${e.id}')">Absent</button>`
+            :a.st==="P"&&!a.out?`<button class="btn btn-sm btn-soft" onclick="checkOut('${e.id}')">${ic("logout")} Check out</button>`
+            :a.st==="A"?`<button class="btn btn-sm btn-ghost" onclick="checkIn('${e.id}')">Mark present</button>`
+            :`<span class="cell-sub">—</span>`}
+          </div></td></tr>`;}).join("")}</tbody>
+      </table></div>
+    </div>
+    <div class="card card-pad" style="align-self:start">
+      <div class="card-title">Month view · July 2026</div>
+      <div class="filter-bar" style="margin:12px 0">
+        <select class="input" style="flex:1" ${selfOnly?"disabled":""} onchange="window.__attEmp=this.value;RENDER.attendance()">
+          ${roster.map(e=>`<option value="${e.id}" ${e.id===selEmp?"selected":""}>${esc(e.name)}</option>`).join("")}
+        </select>
+      </div>
+      ${monthGrid(selEmp)}
+      <div class="cal-legend">
+        <span><i style="background:var(--blue)"></i>Present</span>
+        <span><i style="background:var(--blue-deep)"></i>Leave</span>
+        <span><i style="background:var(--slate)"></i>Absent</span>
+        <span><i style="border:1px solid var(--line-2)"></i>Week off</span>
+        <span><i style="background:var(--blue-deep)"></i>Holiday</span>
+      </div>
+    </div>
+  </div>`;
+};
+function monthGrid(empId){
+  const y=2026,m=6; // July
+  const first=new Date(y,m,1).getDay(), days=31;
+  const seed=[...empId].reduce((a,c)=>a+c.charCodeAt(0),0);
+  let cells=`<div class="minical">${["S","M","T","W","T","F","S"].map(d=>`<div class="mc-h">${d}</div>`).join("")}`;
+  for(let i=0;i<first;i++)cells+=`<div></div>`;
+  for(let d=1;d<=days;d++){
+    const dt=new Date(y,m,d), dow=dt.getDay(), dIso=iso(dt);
+    let cls="mc-F",dot=false;
+    if(dIso>TODAY_ISO){cls="mc-F";}
+    else if(dow===0){cls="mc-W";}
+    else if(DB.holidays.some(h=>h.date===dIso)){cls="mc-H";}
+    else{
+      const onLv=DB.leaves.some(l=>l.emp===empId&&l.status==="Approved"&&dIso>=l.from&&dIso<=l.to);
+      if(dIso===TODAY_ISO){const st=DB.attendance[empId].st;cls=st==="P"?"mc-P":st==="L"?"mc-L":st==="A"?"mc-A":"mc-W";}
+      else if(onLv)cls="mc-L";
+      else cls=((seed+d)%13===0)?"mc-A":"mc-P";
+      dot=true;
+    }
+    cells+=`<div class="mc-d ${cls}${dIso===TODAY_ISO?" mc-today":""}">${d}${dot?"<i></i>":""}</div>`;
+  }
+  return cells+"</div>";
+}
+function nowHM(){const n=new Date();return String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");}
+function checkIn(id){DB.attendance[id]={st:"P",in:nowHM(),out:""};toast(`${emp(id).name.split(" ")[0]} checked in at ${nowHM()}`);refresh();}
+function checkOut(id){const a=DB.attendance[id];a.out=nowHM();toast(`${emp(id).name.split(" ")[0]} checked out at ${a.out}`);refresh();}
+function markAbsent(id){DB.attendance[id]={st:"A",in:"",out:""};toast(`${emp(id).name.split(" ")[0]} marked absent for today`);refresh();}
+
+/* ---------------- LEAVES ---------------- */
+let leaveTab="Pending";
+RENDER.leaves=function(){
+  const bal=DB.leaveBalance[DB.me];
+  const approver=can("approveLeave");
+  if(!approver)leaveTab="All"; // employees only see their own history
+  let rows=DB.leaves.filter(l=>leaveTab==="Pending"?l.status==="Pending":true);
+  if(!approver)rows=rows.filter(l=>l.emp===DB.me);
+  rows.sort((a,b)=>a.applied<b.applied?1:-1);
+  const pendCount=DB.leaves.filter(l=>l.status==="Pending").length;
+  $("#view-leaves").innerHTML=`
+  ${pageHead("Leave Management",approver?"Apply in three fields — type, dates, reason. Approvals happen right here with one tap.":"Check your balance and apply for leave in three fields — type, dates, reason.",
+    `<button class="btn btn-primary" onclick="openApplyLeave()">${ic("plus")} Apply for leave</button>`)}
+  <div class="grid grid-3">
+    ${[["Casual Leave","CL",DB.settings.cl],["Sick Leave","SL",DB.settings.sl],["Earned Leave","EL",DB.settings.el]].map(([n,k,q])=>`
+      <div class="card stat"><div class="lbl">${ic("cal")}${n} — my balance</div>
+      <div class="num">${bal[k]}<small> / ${q} left</small></div>
+      <div class="progress" style="margin-top:10px"><i style="width:${bal[k]/q*100}%"></i></div></div>`).join("")}
+  </div>
+  <div class="section-gap">
+    <div class="tabs">
+      ${approver?`<button class="tab${leaveTab==="Pending"?" active":""}" onclick="leaveTab='Pending';RENDER.leaves()">Pending ${pendCount?`(${pendCount})`:""}</button>`:""}
+      <button class="tab${leaveTab==="All"?" active":""}" onclick="leaveTab='All';RENDER.leaves()">${approver?"All requests":"My requests"}</button>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
+      <tbody>${rows.length?rows.map(l=>`
+        <tr><td>${empCell(l.emp)}</td><td><b>${l.type}</b></td>
+        <td><div class="cell-main">${fdateShort(l.from)} → ${fdateShort(l.to)}</div><div class="cell-sub">applied ${fdate(l.applied)}</div></td>
+        <td><b>${l.days}</b></td><td style="max-width:200px"><span class="cell-sub" style="font-size:12.5px;color:var(--ink-2)">${esc(l.reason)}</span></td>
+        <td>${chipFor(l.status)}</td>
+        <td><div class="row-actions">${l.status==="Pending"&&approver?`
+          <button class="btn btn-sm btn-primary" onclick="leaveAction('${l.id}','Approved')">${ic("check")} Approve</button>
+          <button class="btn btn-sm btn-slate" onclick="leaveAction('${l.id}','Rejected')">Reject</button>`
+          :`<span class="cell-sub mono">${l.id}</span>`}</div></td></tr>`).join("")
+      :`<tr><td colspan="7"><div class="empty">${ic("check")}<b>Nothing here yet</b><p>${approver?"New applications will appear here.":"Your leave applications will appear here."}</p></div></td></tr>`}</tbody>
+    </table></div></div>
+  </div>`;
+};
+function leaveAction(id,status){
+  const l=DB.leaves.find(x=>x.id===id); if(!l)return;
+  l.status=status;
+  if(status==="Approved"){
+    const key=l.type==="Casual"?"CL":l.type==="Sick"?"SL":l.type==="Earned"?"EL":null;
+    if(key)DB.leaveBalance[l.emp][key]=Math.max(0,DB.leaveBalance[l.emp][key]-l.days);
+    if(l.from<=TODAY_ISO&&l.to>=TODAY_ISO)DB.attendance[l.emp]={st:"L",in:"",out:""};
+  }
+  toast(`Leave ${l.id} ${status.toLowerCase()} — ${emp(l.emp).name.split(" ")[0]} will be informed`);
+  refresh();
+}
+function openApplyLeave(){
+  openModal({title:"Apply for leave",sub:"Fill three things and send — that's it.",body:`
+    <div class="form-grid">
+      <div class="fld"><label>Employee</label><select id="lvEmp" class="input" ${isEmployee()?"disabled":""}>${(isEmployee()?DB.employees.filter(e=>e.id===DB.me):DB.employees).map(e=>`<option value="${e.id}" ${e.id===DB.me?"selected":""}>${esc(e.name)}</option>`).join("")}</select></div>
+      <div class="fld"><label>Leave type</label><select id="lvType" class="input"><option>Casual</option><option>Sick</option><option>Earned</option><option>Loss of Pay</option></select></div>
+      <div class="fld"><label>From</label><input id="lvFrom" type="date" class="input" value="${TODAY_ISO}"></div>
+      <div class="fld"><label>To</label><input id="lvTo" type="date" class="input" value="${TODAY_ISO}"></div>
+      <div class="fld full"><label>Reason</label><textarea id="lvReason" placeholder="Short reason — e.g. family function, not feeling well…"></textarea></div>
+    </div>
+    <div class="form-note">Your leave goes to HR for approval. Balance is deducted only after it is approved.</div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitLeave()">${ic("send")} Send request</button>`});
+}
+function submitLeave(){
+  const from=$("#lvFrom").value,to=$("#lvTo").value,reason=$("#lvReason").value.trim();
+  if(!from||!to||to<from)return toast("Check the dates — 'To' can't be before 'From'");
+  if(!reason)return toast("Please write a short reason");
+  const l={id:"LV-"+(DB.counters.lv++),emp:$("#lvEmp").value,type:$("#lvType").value,from,to,days:daysBetween(from,to),reason,status:"Pending",applied:TODAY_ISO};
+  DB.leaves.unshift(l); closeModal();
+  notify(`Leave request from ${emp(l.emp).name}`,`${l.type} · ${fdateShort(from)}–${fdateShort(to)} · awaiting approval`,"cal","leaves");
+  toast(`Request ${l.id} sent for approval`); leaveTab="Pending"; refresh();
+}
+</script>
+<script>
+/* ---------------- PAYROLL ---------------- */
+let payMonth="2026-07";
+RENDER.payroll=function(){
+  const info=DB.payroll[payMonth], paidList=DB.paidRows[payMonth];
+  const isPaid=id=>paidList==="ALL"||paidList.includes(id);
+  const selfOnly=isEmployee(), runner=can("runPayroll");
+  const act=DB.employees.filter(e=>e.status==="Active"&&(!selfOnly||e.id===DB.me));
+  const allAct=DB.employees.filter(e=>e.status==="Active");
+  const totNet=act.reduce((s,e)=>s+breakup(e.salary).net,0);
+  const paidNet=act.filter(e=>isPaid(e.id)).reduce((s,e)=>s+breakup(e.salary).net,0);
+  const [y,m]=payMonth.split("-");
+  const label=`${MONTHS[+m-1]} ${y}`;
+
+  $("#view-payroll").innerHTML=`
+  ${pageHead("Payroll",selfOnly?"Your monthly salary breakup and payslips — open and download anytime.":"Pick a month, check the amounts, press one button. Payslips open instantly for every employee.",
+    `<select class="input" onchange="payMonth=this.value;RENDER.payroll()">
+       <option value="2026-07" ${payMonth==="2026-07"?"selected":""}>July 2026</option>
+       <option value="2026-06" ${payMonth==="2026-06"?"selected":""}>June 2026</option>
+     </select>
+     ${!selfOnly?`<button class="btn btn-ghost" onclick="exportPayrollCSV()">${ic("download")} Export CSV</button>`:""}
+     ${runner&&paidList!=="ALL"?`<button class="btn btn-primary" onclick="runPayroll()">${ic("banknote")} Run payroll · ${label}</button>`:""}`)}
+  <div class="grid grid-3">
+    ${selfOnly
+      ?statCard("My net pay — "+label,"banknote",money(breakup(emp(DB.me).salary).net),isPaid(DB.me)?"credited ✓":"processing")
+       +statCard("Gross","file",money(emp(DB.me).salary),"monthly CTC component")
+       +statCard("Deductions","clock",money(breakup(emp(DB.me).salary).ded),"PF + PT + TDS")
+      :statCard("Total payout — "+label,"banknote",money(totNet),allAct.length+" active employees")
+       +statCard("Paid so far","check",money(paidNet),paidList==="ALL"?"everyone paid ✓":`${paidList.length} of ${allAct.length} paid`)
+       +statCard("Remaining","clock",money(totNet-paidNet),paidList==="ALL"?"nothing pending":"press Run payroll to clear")}
+  </div>
+  <div class="card section-gap"><div class="tbl-wrap"><table>
+    <thead><tr><th>Employee</th><th>Gross</th><th>Deductions</th><th>Net pay</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+    <tbody>${act.map(e=>{const b=breakup(e.salary);const paid=isPaid(e.id);return `
+      <tr><td>${empCell(e.id)}</td>
+      <td class="amt">${money(e.salary)}</td>
+      <td class="amt" style="color:var(--slate)">− ${money(b.ded)}</td>
+      <td class="amt" style="font-weight:800;color:var(--blue-ink)">${money(b.net)}</td>
+      <td>${chipFor(paid?"Paid":"Pending")}</td>
+      <td><div class="row-actions">
+        <button class="btn btn-sm btn-soft" onclick="openPayslip('${e.id}')">${ic("file")} Payslip</button>
+        ${!paid&&runner?`<button class="btn btn-sm btn-primary" onclick="payOne('${e.id}')">Pay</button>`:""}
+      </div></td></tr>`;}).join("")}</tbody>
+  </table></div></div>`;
+};
+function payOne(id){
+  const list=DB.paidRows[payMonth]; if(list==="ALL")return;
+  if(!list.includes(id))list.push(id);
+  if(list.length===DB.employees.filter(e=>e.status==="Active").length){DB.paidRows[payMonth]="ALL";DB.payroll[payMonth].status="Paid";}
+  toast(`Salary paid to ${emp(id).name.split(" ")[0]} for ${MONTHS[+payMonth.split("-")[1]-1]}`); RENDER.payroll();
+}
+function runPayroll(){
+  const [y,m]=payMonth.split("-");
+  confirmBox("Run payroll for "+MONTHS[+m-1]+" "+y,
+    "Salary will be marked as paid for all remaining employees for this month. This is how the real bank-transfer step will work.",
+    "Yes, run payroll",()=>{ DB.paidRows[payMonth]="ALL"; DB.payroll[payMonth]={status:"Paid",paidOn:TODAY_ISO};
+      toast("Payroll processed — everyone marked paid ✓"); notify("Payroll processed",MONTHS[+m-1]+" salaries marked paid","banknote","payroll"); RENDER.payroll(); });
+}
+function openPayslip(id){
+  const e=emp(id),b=breakup(e.salary);
+  const [y,m]=payMonth.split("-");
+  openModal({title:"Payslip — "+MONTHS[+m-1]+" "+y,wide:true,sub:"",body:`
+    <div style="border:1px solid var(--line);border-radius:14px;overflow:hidden">
+      <div style="background:var(--sky-3);padding:16px 18px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line)">
+        <div><div style="font-family:var(--font-disp);font-weight:800;font-size:16px">${esc(DB.settings.company)}</div>
+        <div style="font-size:11.5px;color:var(--ink-2);max-width:360px">${esc(DB.settings.address)}</div></div>
+        <div style="text-align:right"><div class="mono" style="font-size:11px">PAYSLIP · ${payMonth}</div><div style="font-weight:800">${esc(e.name)}</div>
+        <div style="font-size:11.5px;color:var(--ink-2)">${e.id} · ${esc(e.role)} · ${esc(e.dept)}</div></div>
+      </div>
+      <div class="grid grid-2" style="gap:0">
+        <table class="slip-table"><thead><tr><th>Earnings</th><th style="text-align:right">Amount</th></tr></thead><tbody>
+          <tr><td>Basic (50%)</td><td class="amt" style="text-align:right">${money(b.basic)}</td></tr>
+          <tr><td>HRA (20%)</td><td class="amt" style="text-align:right">${money(b.hra)}</td></tr>
+          <tr><td>Special allowance</td><td class="amt" style="text-align:right">${money(b.special)}</td></tr>
+          <tr class="slip-total"><td>Gross</td><td class="amt" style="text-align:right">${money(e.salary)}</td></tr>
+        </tbody></table>
+        <table class="slip-table" style="border-left:1px solid var(--line)"><thead><tr><th>Deductions</th><th style="text-align:right">Amount</th></tr></thead><tbody>
+          <tr><td>Provident Fund</td><td class="amt" style="text-align:right">${money(b.pf)}</td></tr>
+          <tr><td>Professional Tax</td><td class="amt" style="text-align:right">${money(b.pt)}</td></tr>
+          <tr><td>TDS</td><td class="amt" style="text-align:right">${money(b.tds)}</td></tr>
+          <tr class="slip-total"><td>Total deductions</td><td class="amt" style="text-align:right">${money(b.ded)}</td></tr>
+        </tbody></table>
+      </div>
+      <div style="padding:14px 18px;background:var(--sky);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div style="font-size:12px;color:var(--blue-ink);font-weight:700">Rupees ${inWords(b.net)} only</div>
+        <div style="font-family:var(--font-disp);font-weight:800;font-size:20px;color:var(--blue-deep)">Net pay: ${money(b.net)}</div>
+      </div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Close</button>
+        <button class="btn btn-primary" onclick="toast('Payslip PDF will download in the full version')">${ic("download")} Download PDF</button>`});
+}
+
+/* ---------------- RECRUITMENT ---------------- */
+const STAGES=["Applied","Screening","Interview","Offer","Hired","Rejected"];
+RENDER.recruitment=function(){
+  $("#view-recruitment").innerHTML=`
+  ${pageHead("Recruitment","Openings on top, candidates below. Move a candidate ahead by simply changing the stage.",
+    `<button class="btn btn-ghost" onclick="openAddOpening()">${ic("plus")} New opening</button>
+     <button class="btn btn-primary" onclick="openAddCandidate()">${ic("plus")} Add candidate</button>`)}
+  <div class="grid grid-4">
+    ${DB.openings.map(o=>`<div class="card opening-card">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:8px"><h4>${esc(o.title)}</h4>${chipFor(o.status)}</div>
+      <div class="oc-meta">${esc(o.dept)} · ${o.positions} position${o.positions>1?"s":""} · ${esc(o.exp)}</div>
+      <div class="oc-foot"><span class="cell-sub">Posted ${fdate(o.posted)}</span>
+      <span class="chip chip-sky">${DB.candidates.filter(c=>c.job===o.title&&!["Hired","Rejected"].includes(c.stage)).length} in pipeline</span></div>
+    </div>`).join("")}
+  </div>
+  <div class="card section-gap">
+    <div class="card-pad" style="padding-bottom:0"><div class="card-title">Candidates <span class="sub">change the stage from the dropdown — done</span></div>
+      <div class="filter-bar" style="margin-top:12px">
+        <select class="input" onchange="recFilter.stage=this.value;RENDER.recruitment()">${["All",...STAGES].map(s=>`<option ${recFilter.stage===s?"selected":""}>${s==="All"?"All stages":s}</option>`).join("")}</select>
+        <select class="input" onchange="recFilter.job=this.value;RENDER.recruitment()">${["All",...DB.openings.map(o=>o.title)].map(j=>`<option ${recFilter.job===j?"selected":""}>${j==="All"?"All openings":j}</option>`).join("")}</select>
+        <div class="spacer"></div><span class="chip chip-sky">${DB.candidates.filter(c=>(recFilter.stage==="All"||c.stage===recFilter.stage)&&(recFilter.job==="All"||c.job===recFilter.job)).length} candidates</span>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Candidate</th><th>Applied for</th><th>Experience</th><th>Phone</th><th>Applied on</th><th>Stage</th></tr></thead>
+      <tbody>${(()=>{const crows=DB.candidates.map((c,i)=>({c,i})).filter(({c})=>(recFilter.stage==="All"||c.stage===recFilter.stage)&&(recFilter.job==="All"||c.job===recFilter.job));
+        return crows.length?crows.map(({c,i})=>`
+        <tr><td><div class="emp-cell">${avatar(c.name,i+3)}<div><div class="cell-main">${esc(c.name)}</div><div class="cell-sub mono">${c.id}</div></div></div></td>
+        <td>${esc(c.job)}</td><td>${esc(c.exp)}</td><td class="mono">${esc(c.phone)}</td><td>${fdate(c.applied)}</td>
+        <td><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${chipFor(c.stage)}
+          <select class="input" style="padding:5px 26px 5px 9px;font-size:12px" onchange="moveStage('${c.id}',this.value)">
+            ${STAGES.map(s=>`<option ${s===c.stage?"selected":""}>${s}</option>`).join("")}
+          </select>
+          ${can("offer")&&!["Rejected"].includes(c.stage)?`<button class="btn btn-sm btn-soft" onclick="openOfferBuilder('${c.id}')">${ic("file")} Make offer</button>`:""}
+          </div></td></tr>`).join("")
+        :`<tr><td colspan="6"><div class="empty">${ic("briefcase")}<b>No candidates match your filter</b><p>Try a different stage or opening.</p></div></td></tr>`;})()}</tbody>
+    </table></div>
+  </div>`;
+};
+function moveStage(id,stage){const c=DB.candidates.find(x=>x.id===id);c.stage=stage;toast(`${c.name} moved to “${stage}”`);RENDER.recruitment();}
+function openAddCandidate(){
+  openModal({title:"Add candidate",body:`
+    <div class="form-grid">
+      <div class="fld"><label>Full name</label><input id="cnName" class="input" placeholder="e.g. Rohan Malhotra"></div>
+      <div class="fld"><label>Applying for</label><select id="cnJob" class="input">${DB.openings.filter(o=>o.status==="Open").map(o=>`<option>${esc(o.title)}</option>`).join("")}</select></div>
+      <div class="fld"><label>Experience</label><input id="cnExp" class="input" placeholder="e.g. 2 yrs"></div>
+      <div class="fld"><label>Phone</label><input id="cnPhone" class="input" placeholder="10-digit mobile"></div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveCandidate()">${ic("plus")} Add to pipeline</button>`});
+}
+function saveCandidate(){
+  const name=$("#cnName").value.trim(); if(!name)return toast("Name is required");
+  DB.candidates.unshift({id:"CND-"+(DB.counters.cnd++),name,job:$("#cnJob").value,phone:$("#cnPhone").value||"—",exp:$("#cnExp").value||"—",stage:"Applied",applied:TODAY_ISO});
+  closeModal();toast(`${name} added to the pipeline`);RENDER.recruitment();
+}
+function openAddOpening(){
+  openModal({title:"New job opening",body:`
+    <div class="form-grid">
+      <div class="fld full"><label>Job title</label><input id="jbTitle" class="input" placeholder="e.g. React Native Developer"></div>
+      <div class="fld"><label>Department</label><select id="jbDept" class="input">${DB.departments.map(d=>`<option>${esc(d.name)}</option>`).join("")}</select></div>
+      <div class="fld"><label>Positions</label><input id="jbPos" type="number" class="input" value="1" min="1"></div>
+      <div class="fld full"><label>Experience range</label><input id="jbExp" class="input" placeholder="e.g. 1–3 yrs"></div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveOpening()">${ic("plus")} Publish opening</button>`});
+}
+function saveOpening(){
+  const t=$("#jbTitle").value.trim(); if(!t)return toast("Job title is required");
+  DB.openings.unshift({id:"JOB-"+(DB.counters.job++),title:t,dept:$("#jbDept").value,positions:+$("#jbPos").value||1,exp:$("#jbExp").value||"—",status:"Open",posted:TODAY_ISO});
+  closeModal();toast(`Opening “${t}” published`);RENDER.recruitment();
+}
+
+/* ---------------- OFFERS & SALARY STRUCTURE ---------------- */
+// Compute a monthly + annual salary annexure from a CTC and a structure template
+function structBreakup(annualCtc, ss){
+  const gm=Math.round(annualCtc/12);
+  const basic=Math.round(gm*ss.basicPct/100);
+  const hra=Math.round(gm*ss.hraPct/100);
+  const special=gm-basic-hra;
+  const pf=ss.pf?Math.min(1800,Math.round(basic*0.12)):0;
+  const pt=ss.pt||0;
+  const ded=pf+pt;
+  const netM=gm-ded;
+  return {gm,basic,hra,special,pf,pt,ded,netM,annualCtc,ss};
+}
+let offerCtx={cnd:null,ssId:"SS1",ctc:600000,join:"2026-08-01"};
+function openOfferBuilder(cndId){
+  const c=DB.candidates.find(x=>x.id===cndId); if(!c)return;
+  offerCtx={cnd:cndId,ssId:DB.salaryStructures[0].id,ctc:600000,join:"2026-08-01",override:null};
+  openModal({title:"Build offer — "+c.name,sub:"Pick a salary structure, set the CTC, and generate a ready offer letter. You can fine-tune the structure just for this offer.",wide:true,body:`
+    <div class="form-grid">
+      <div class="fld"><label>Candidate</label><input class="input" value="${esc(c.name)} — ${esc(c.job)}" disabled></div>
+      <div class="fld"><label>Salary structure</label><select id="ofSs" class="input" onchange="offerPickStruct(this.value)">
+        ${DB.salaryStructures.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select></div>
+      <div class="fld"><label>Annual CTC (₹)</label><input id="ofCtc" type="number" class="input" value="${offerCtx.ctc}" oninput="offerCtx.ctc=+this.value||0;offerPreview()"></div>
+      <div class="fld"><label>Tentative joining date</label><input id="ofJoin" type="date" class="input" value="${offerCtx.join}" onchange="offerCtx.join=this.value"></div>
+    </div>
+    <div class="adj-wrap">
+      <label class="check-pill" style="width:100%"><input type="checkbox" id="ofAdj" onchange="toggleOfferAdjust(this.checked)"> Edit / adjust this salary structure for this offer only</label>
+      <div id="ofAdjFields" class="adj-fields" style="display:none">
+        <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+          <div class="fld"><label>Basic %</label><input id="ofBasic" type="number" class="input" oninput="offerAdjChange()"></div>
+          <div class="fld"><label>HRA %</label><input id="ofHra" type="number" class="input" oninput="offerAdjChange()"></div>
+          <div class="fld"><label>Special %</label><input id="ofSpec" class="input" disabled></div>
+          <div class="fld"><label>Prof. Tax (₹)</label><input id="ofPt" type="number" class="input" oninput="offerAdjChange()"></div>
+        </div>
+        <label class="check-pill" style="margin-top:4px"><input type="checkbox" id="ofPf" onchange="offerAdjChange()"> Deduct Provident Fund</label>
+        <span class="adj-hint">These changes apply to this offer only and don't alter the saved template.</span>
+      </div>
+    </div>
+    <div id="ofPreview" style="margin-top:10px"></div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="generateOffer()">${ic("file")} Generate offer letter</button>`});
+  offerPreview();
+}
+function effSS(){
+  const base=DB.salaryStructures.find(s=>s.id===offerCtx.ssId)||DB.salaryStructures[0];
+  if(offerCtx.override){ const o=offerCtx.override;
+    return {...base,name:base.name+" · adjusted",basicPct:o.basicPct,hraPct:o.hraPct,specialPct:Math.max(0,100-o.basicPct-o.hraPct),pf:o.pf,pt:o.pt}; }
+  return base;
+}
+function offerPickStruct(v){ offerCtx.ssId=v; if($("#ofAdj")&&$("#ofAdj").checked) toggleOfferAdjust(true); else offerPreview(); }
+function toggleOfferAdjust(on){
+  $("#ofAdjFields").style.display=on?"block":"none";
+  if(on){ const base=DB.salaryStructures.find(s=>s.id===offerCtx.ssId)||DB.salaryStructures[0];
+    offerCtx.override={basicPct:base.basicPct,hraPct:base.hraPct,pf:base.pf,pt:base.pt};
+    $("#ofBasic").value=base.basicPct; $("#ofHra").value=base.hraPct; $("#ofPt").value=base.pt;
+    $("#ofPf").checked=base.pf; $("#ofSpec").value=Math.max(0,100-base.basicPct-base.hraPct);
+  } else { offerCtx.override=null; }
+  offerPreview();
+}
+function offerAdjChange(){
+  const b=+$("#ofBasic").value||0,h=+$("#ofHra").value||0;
+  $("#ofSpec").value=Math.max(0,100-b-h);
+  offerCtx.override={basicPct:b,hraPct:h,pf:$("#ofPf").checked,pt:+$("#ofPt").value||0};
+  offerPreview();
+}
+function offerPreview(){
+  const ss=effSS();
+  const b=structBreakup(offerCtx.ctc,ss);
+  const row=(l,m,cls="")=>`<tr><td>${l}</td><td class="amt ${cls}">${money(m)}</td><td class="amt ${cls}">${money(m*12)}</td></tr>`;
+  $("#ofPreview").innerHTML=`
+    <div class="card-title" style="margin-bottom:8px">Salary annexure preview <span class="sub">${esc(ss.name)}</span></div>
+    <div class="tbl-wrap"><table class="slip-table">
+      <thead><tr><th>Component</th><th style="text-align:right">Monthly</th><th style="text-align:right">Annual</th></tr></thead>
+      <tbody>
+        ${row("Basic",b.basic)}${row("HRA",b.hra)}${row("Special Allowance",b.special)}
+        <tr class="slip-sum"><td>Gross Salary</td><td class="amt">${money(b.gm)}</td><td class="amt">${money(b.gm*12)}</td></tr>
+        ${b.pf?row("Less: Provident Fund",b.pf,"neg"):""}
+        ${b.pt?row("Less: Professional Tax",b.pt,"neg"):""}
+        <tr class="slip-sum"><td>Net Take-home</td><td class="amt">${money(b.netM)}</td><td class="amt">${money(b.netM*12)}</td></tr>
+      </tbody>
+    </table></div>
+    <div class="form-note">CTC ${money(b.annualCtc)}/yr · ${inWords(b.annualCtc)}. PF ${ss.pf?"included":"not applicable"} · Gratuity ${ss.gratuity?"applicable":"not applicable"}.</div>`;
+}
+function fillTemplate(tpl,map){ return tpl.replace(/\{\{(\w+)\}\}/g,(_,k)=>map[k]!=null?map[k]:""); }
+function generateOffer(){
+  const c=DB.candidates.find(x=>x.id===offerCtx.cnd); if(!c)return;
+  const ss=effSS();
+  const b=structBreakup(offerCtx.ctc,ss);
+  const me=emp(DB.me);
+  const dept=(DB.openings.find(o=>o.title===c.job)||{}).dept||"—";
+  const map={
+    DATE:fdate(TODAY_ISO), NAME:c.name, ROLE:c.job, DEPT:dept,
+    COMPANY:DB.settings.company, ADDRESS:DB.settings.address,
+    CTC:money(b.annualCtc), CTC_WORDS:inWords(b.annualCtc),
+    JOIN:fdate(offerCtx.join), HR_NAME:me.name, HR_ROLE:myRole(),
+  };
+  const letter=fillTemplate(DB.settings.offerTemplate,map);
+  const offer={id:"OFR-"+(DB.counters.offer++),cnd:c.id,name:c.name,role:c.job,ctc:b.annualCtc,ss:ss.name,join:offerCtx.join,date:TODAY_ISO,letter,breakup:b};
+  DB.offers.unshift(offer);
+  if(c.stage!=="Hired")moveStageQuiet(c.id,"Offer");
+  showOfferLetter(offer.id);
+}
+function moveStageQuiet(id,stage){const c=DB.candidates.find(x=>x.id===id);if(c)c.stage=stage;}
+function showOfferLetter(offerId){
+  const o=DB.offers.find(x=>x.id===offerId); if(!o)return;
+  const b=o.breakup;
+  const annex=`
+    <table class="slip-table" style="margin-top:10px">
+      <thead><tr><th>Component</th><th style="text-align:right">Monthly (₹)</th><th style="text-align:right">Annual (₹)</th></tr></thead>
+      <tbody>
+        <tr><td>Basic</td><td class="amt">${money(b.basic)}</td><td class="amt">${money(b.basic*12)}</td></tr>
+        <tr><td>HRA</td><td class="amt">${money(b.hra)}</td><td class="amt">${money(b.hra*12)}</td></tr>
+        <tr><td>Special Allowance</td><td class="amt">${money(b.special)}</td><td class="amt">${money(b.special*12)}</td></tr>
+        <tr class="slip-sum"><td>Gross</td><td class="amt">${money(b.gm)}</td><td class="amt">${money(b.gm*12)}</td></tr>
+        ${b.pf?`<tr><td>Less: PF</td><td class="amt neg">${money(b.pf)}</td><td class="amt neg">${money(b.pf*12)}</td></tr>`:""}
+        ${b.pt?`<tr><td>Less: Professional Tax</td><td class="amt neg">${money(b.pt)}</td><td class="amt neg">${money(b.pt*12)}</td></tr>`:""}
+        <tr class="slip-sum"><td>Net Take-home</td><td class="amt">${money(b.netM)}</td><td class="amt">${money(b.netM*12)}</td></tr>
+      </tbody>
+    </table>`;
+  openModal({title:"Offer letter — "+o.name,sub:o.id+" · "+esc(o.role),wide:true,body:`
+    <div id="offerDoc" style="border:1px solid var(--line);border-radius:14px;padding:24px;background:#fff">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:2px solid var(--blue);padding-bottom:12px;margin-bottom:14px">
+        <div><div style="font-family:var(--font-disp);font-weight:800;font-size:18px;color:var(--blue-deep)">${esc(DB.settings.company)}</div>
+        <div style="font-size:11.5px;color:var(--ink-2);max-width:380px">${esc(DB.settings.address)}</div></div>
+        <div style="text-align:right;font-size:11px;color:var(--ink-2)"><div class="mono">${o.id}</div><div>CIN: ${esc(DB.settings.cin)}</div></div>
+      </div>
+      <h3 style="text-align:center;font-family:var(--font-disp);letter-spacing:.5px;margin:6px 0 16px">LETTER OF OFFER</h3>
+      <pre style="white-space:pre-wrap;font-family:var(--font-ui);font-size:13px;line-height:1.6;color:var(--ink)">${esc(o.letter)}</pre>
+      <div style="margin-top:18px"><b style="font-size:13px">Annexure A — Salary Structure (${esc(o.ss)})</b>${annex}</div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Close</button>
+        <button class="btn btn-slate" onclick="printOffer()">${ic("file")} Print</button>
+        <button class="btn btn-primary" onclick="downloadOffer('${o.id}')">${ic("download")} Download</button>`});
+}
+function printOffer(){
+  const html=$("#offerDoc").outerHTML;
+  const w=window.open("","_blank");
+  w.document.write(`<html><head><title>Offer Letter</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:32px;color:#102A4D}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #DEE8F6;padding:7px 10px;text-align:left}.amt{text-align:right;font-variant-numeric:tabular-nums}.neg{color:#7E96BB}.slip-sum{font-weight:700;background:#F2F6FC}pre{white-space:pre-wrap;font-family:inherit;line-height:1.6}h3{text-align:center}</style></head><body>${html}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>w.print(),300);
+}
+function downloadOffer(id){
+  const o=DB.offers.find(x=>x.id===id); if(!o)return;
+  const b=o.breakup;
+  const txt=`${DB.settings.company}\n${DB.settings.address}\n\nLETTER OF OFFER — ${o.id}\n\n${o.letter}\n\n---- Annexure A · Salary Structure (${o.ss}) ----\nComponent            Monthly        Annual\nBasic                ${money(b.basic)}\t${money(b.basic*12)}\nHRA                  ${money(b.hra)}\t${money(b.hra*12)}\nSpecial Allowance    ${money(b.special)}\t${money(b.special*12)}\nGross                ${money(b.gm)}\t${money(b.gm*12)}\n${b.pf?`Less: PF             ${money(b.pf)}\t${money(b.pf*12)}\n`:""}${b.pt?`Less: Prof. Tax      ${money(b.pt)}\t${money(b.pt*12)}\n`:""}Net Take-home        ${money(b.netM)}\t${money(b.netM*12)}\n`;
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain"}));
+  a.download=`offer-${o.name.replace(/\s+/g,"-").toLowerCase()}-${o.id}.txt`; a.click(); URL.revokeObjectURL(a.href);
+  toast("Offer letter downloaded");
+}
+
+/* ---------------- PERFORMANCE ---------------- */
+RENDER.performance=function(){
+  $("#view-performance").innerHTML=`
+  ${pageHead("Performance","Simple goals with a progress bar, and quarterly reviews with a 5-point rating. No forms within forms.",
+    can("manageGoals")?`<button class="btn btn-primary" onclick="openAddGoal()">${ic("plus")} Add goal</button>`:"")}
+  <div class="grid grid-23">
+    <div class="card">
+      <div class="card-pad" style="padding-bottom:10px"><div class="card-title">Goals — Q3 2026 <span class="sub">tap +10% as work moves forward</span></div></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Goal</th><th>Owner</th><th>Due</th><th>Progress</th><th></th></tr></thead>
+        <tbody>${DB.goals.map(g=>`
+          <tr><td style="max-width:250px"><div class="cell-main" style="white-space:normal">${esc(g.title)}</div></td>
+          <td>${empCell(g.emp)}</td><td>${fdate(g.due)}</td>
+          <td><div style="display:flex;align-items:center;gap:9px"><div class="progress" style="flex:1"><i style="width:${g.progress}%"></i></div><b class="mono" style="font-size:11.5px">${g.progress}%</b></div></td>
+          <td><div class="row-actions">${g.progress>=100?`<span class="chip chip-solid">Done</span>`:can("manageGoals")?`<button class="btn btn-sm btn-soft" onclick="bumpGoal('${g.id}')">+10%</button>`:`<span class="chip chip-sky">${g.progress}%</span>`}</div></td></tr>`).join("")}</tbody>
+      </table></div>
+    </div>
+    <div class="card card-pad" style="align-self:start">
+      <div class="card-title">Reviews — Q2 2026</div>
+      <div style="margin-top:6px">${DB.reviews.map(r=>`
+        <div class="list-row">${avatar(emp(r.emp).name,empSeed(r.emp))}
+        <div class="lr-main"><b>${esc(emp(r.emp).name)}</b><span>${esc(r.note)}</span></div>
+        <div style="display:flex;gap:3px;flex-shrink:0">${[1,2,3,4,5].map(i=>`<span style="width:9px;height:9px;border-radius:50%;background:${i<=r.rating?"var(--blue)":"var(--sky-2)"}"></span>`).join("")}</div>
+        </div>`).join("")}</div>
+    </div>
+  </div>`;
+};
+function bumpGoal(id){const g=DB.goals.find(x=>x.id===id);g.progress=Math.min(100,g.progress+10);toast(g.progress===100?"Goal completed 🎉":"Progress updated to "+g.progress+"%");RENDER.performance();}
+function openAddGoal(){
+  openModal({title:"Add goal",body:`
+    <div class="form-grid">
+      <div class="fld full"><label>Goal</label><input id="glTitle" class="input" placeholder="e.g. Launch client portal v1"></div>
+      <div class="fld"><label>Owner</label><select id="glEmp" class="input">${DB.employees.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join("")}</select></div>
+      <div class="fld"><label>Due date</label><input id="glDue" type="date" class="input" value="2026-09-30"></div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveGoal()">${ic("plus")} Add goal</button>`});
+}
+function saveGoal(){
+  const t=$("#glTitle").value.trim(); if(!t)return toast("Write the goal first");
+  DB.goals.unshift({id:"G"+(DB.counters.goal++),emp:$("#glEmp").value,title:t,due:$("#glDue").value,progress:0});
+  closeModal();toast("Goal added");RENDER.performance();
+}
+
+/* ---------------- ASSETS ---------------- */
+RENDER.assets=function(){
+  const assigned=DB.assets.filter(a=>a.status==="Assigned").length;
+  const api=DB.settings.assetApi, manage=can("assignAsset");
+  const apiCount=DB.assets.filter(a=>a.src==="api").length;
+  $("#view-assets").innerHTML=`
+  ${pageHead("Assets","Laptops, monitors, kits, SIMs — who has what. The master list syncs from your Asset Management app over API.",
+    manage?`<button class="btn btn-primary" onclick="openAssignAsset()">${ic("plus")} Assign asset</button>`:"")}
+  <div class="api-bar">
+    <div class="api-ico">${ic("plug")}</div>
+    <div class="api-txt">
+      <b>Asset Management API ${api.enabled?'<span class="src-tag src-api">connected</span>':'<span class="src-tag src-manual">off</span>'}</b>
+      <span class="api-url">${esc(api.url)}</span><br>
+      <span>${apiCount} of ${DB.assets.length} assets synced · last sync ${esc(api.lastSync)}</span>
+    </div>
+    ${manage?`<button class="btn btn-white" onclick="syncAssets()">${ic("refresh")} Sync now</button>
+      <button class="btn btn-ghost" onclick="go('settings')">${ic("gear")} Configure</button>`:""}
+  </div>
+  <div class="grid grid-3">
+    ${statCard("Total assets","monitor",DB.assets.length,"across all types")}
+    ${statCard("Assigned","users",assigned,"with employees right now")}
+    ${statCard("Available / repair","gear",DB.assets.length-assigned,DB.assets.filter(a=>a.status==="In Repair").length+" in repair")}
+  </div>
+  <div class="card section-gap">
+    <div class="card-pad" style="padding-bottom:0"><div class="filter-bar">
+      <div class="search-inline">${ic("search")}<input class="input" placeholder="Search asset, tag…" value="${esc(assetFilter.q)}" oninput="assetFilter.q=this.value;RENDER.assets()"></div>
+      <select class="input" onchange="assetFilter.type=this.value;RENDER.assets()">${["All",...new Set(DB.assets.map(a=>a.type))].map(t=>`<option ${assetFilter.type===t?"selected":""}>${t==="All"?"All types":t}</option>`).join("")}</select>
+      <select class="input" onchange="assetFilter.status=this.value;RENDER.assets()">${["All","Assigned","Available","In Repair"].map(s=>`<option ${assetFilter.status===s?"selected":""}>${s==="All"?"All status":s}</option>`).join("")}</select>
+      <div class="spacer"></div><span class="chip chip-sky">${(()=>{const af=assetFilter;return DB.assets.filter(a=>(af.type==="All"||a.type===af.type)&&(af.status==="All"||a.status===af.status)&&(!af.q||a.name.toLowerCase().includes(af.q.toLowerCase())||a.tag.toLowerCase().includes(af.q.toLowerCase()))).length;})()} shown</span>
+    </div></div>
+    <div class="tbl-wrap"><table>
+    <thead><tr><th>Asset</th><th>Tag</th><th>Type</th><th>Source</th><th>Assigned to</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
+    <tbody>${(()=>{const af=assetFilter;const arows=DB.assets.filter(a=>(af.type==="All"||a.type===af.type)&&(af.status==="All"||a.status===af.status)&&(!af.q||a.name.toLowerCase().includes(af.q.toLowerCase())||a.tag.toLowerCase().includes(af.q.toLowerCase())));
+      return arows.length?arows.map(a=>`
+      <tr><td><div class="cell-main">${esc(a.name)}</div><div class="cell-sub">${a.since?"since "+fdate(a.since):"in store"}</div></td>
+      <td class="mono">${a.tag}</td><td>${esc(a.type)}</td>
+      <td><span class="src-tag src-${a.src==="api"?"api":"manual"}">${a.src==="api"?"API":"Manual"}</span></td>
+      <td>${a.emp?empCell(a.emp):'<span class="cell-sub">—</span>'}</td><td>${chipFor(a.status)}</td>
+      <td><div class="row-actions">${manage?(a.status==="Assigned"
+        ?`<button class="btn btn-sm btn-slate" onclick="returnAsset('${a.id}')">Take back</button>`
+        :a.status==="Available"?`<button class="btn btn-sm btn-soft" onclick="openAssignAsset('${a.id}')">Assign</button>`
+        :`<button class="btn btn-sm btn-ghost" onclick="fixAsset('${a.id}')">Mark repaired</button>`):`<span class="cell-sub">view only</span>`}</div></td></tr>`).join("")
+      :`<tr><td colspan="7"><div class="empty">${ic("monitor")}<b>No assets match your filter</b><p>Try a different type or status.</p></div></td></tr>`;})()}</tbody>
+  </table></div></div>`;
+};
+/* Pull the asset master list from the external Asset Management application.
+   In a live deployment this hits DB.settings.assetApi.url with the API key.
+   Offline preview falls back to a mock payload so the flow is demonstrable. */
+async function syncAssets(){
+  const api=DB.settings.assetApi;
+  if(!api.enabled)return toast("Enable the Asset API in Settings first");
+  toast("Syncing from Asset Management app…");
+  let payload=null;
+  try{
+    const res=await fetch(api.url,{headers:api.key?{"Authorization":"Bearer "+api.key}:{}});
+    if(res.ok)payload=await res.json();
+  }catch(e){/* offline preview — use mock below */}
+  if(!payload){
+    // ---- MOCK RESPONSE (shape the real API is expected to return) ----
+    payload=[
+      {tag:"LPT-051",name:"Lenovo ThinkPad E14",type:"Laptop",status:"Available"},
+      {tag:"MON-018",name:"Dell 27\" P2722H",type:"Monitor",status:"Available"},
+      {tag:"KIT-KX2",name:"Kontrolix Dev Kit KX-2",type:"IoT Kit",status:"Available"},
+    ];
+  }
+  let added=0;
+  payload.forEach(p=>{
+    const ex=DB.assets.find(a=>a.tag===p.tag);
+    if(ex){ ex.name=p.name; ex.type=p.type; if(!ex.emp)ex.status=p.status; ex.src="api"; }
+    else{ DB.assets.push({id:"AST-"+(DB.counters.ast++),name:p.name,type:p.type,tag:p.tag,emp:"",status:p.status||"Available",since:"",src:"api"}); added++; }
+  });
+  const now=new Date();
+  api.lastSync=`${iso(now)} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+  toast(added?`Synced — ${added} new asset${added>1?"s":""} pulled from API`:"Synced — asset list up to date");
+  RENDER.assets();
+}
+function returnAsset(id){const a=DB.assets.find(x=>x.id===id);toast(`${a.name} returned by ${emp(a.emp).name.split(" ")[0]}`);a.emp="";a.status="Available";a.since="";RENDER.assets();}
+function fixAsset(id){const a=DB.assets.find(x=>x.id===id);a.status="Available";toast(a.name+" is back in store");RENDER.assets();}
+function openAssignAsset(pre){
+  const avail=DB.assets.filter(a=>a.status==="Available");
+  if(!avail.length)return toast("No assets available in store right now");
+  openModal({title:"Assign asset",body:`
+    <div class="form-grid">
+      <div class="fld"><label>Asset</label><select id="asAsset" class="input">${avail.map(a=>`<option value="${a.id}" ${a.id===pre?"selected":""}>${esc(a.name)} (${a.tag})</option>`).join("")}</select></div>
+      <div class="fld"><label>Give to</label><select id="asEmp" class="input">${DB.employees.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join("")}</select></div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveAssign()">${ic("check")} Assign</button>`});
+}
+function saveAssign(){
+  const a=DB.assets.find(x=>x.id===$("#asAsset").value); a.emp=$("#asEmp").value; a.status="Assigned"; a.since=TODAY_ISO;
+  closeModal();toast(`${a.name} assigned to ${emp(a.emp).name.split(" ")[0]}`);RENDER.assets();
+}
+
+/* ---------------- EXPENSES ---------------- */
+RENDER.expenses=function(){
+  const selfOnly=isEmployee(), canApprove=can("approveExpense"), canClear=can("clearExpense");
+  let list=selfOnly?DB.expenses.filter(x=>x.emp===DB.me):DB.expenses;
+  const pend=list.filter(x=>x.status==="Pending");
+  const pendAmt=pend.reduce((s,x)=>s+x.amt,0);
+  const monthAmt=list.filter(x=>x.status!=="Rejected"&&x.date.startsWith("2026-07")).reduce((s,x)=>s+x.amt,0);
+  const cats=["All",...new Set(DB.expenses.map(x=>x.cat))];
+  const rf=expFilter;
+  const rows=list.filter(x=>(rf.status==="All"||x.status===rf.status)&&(rf.cat==="All"||x.cat===rf.cat)&&
+    (!rf.q||x.title.toLowerCase().includes(rf.q.toLowerCase())||emp(x.emp).name.toLowerCase().includes(rf.q.toLowerCase())||x.id.toLowerCase().includes(rf.q.toLowerCase())));
+  const roleNote=selfOnly?"Submit a reimbursement claim and track it through approval and payout.":
+    canClear?"Approve reimbursement claims and clear them for payout — approvals and clearances in one place.":
+    "Team submits a claim, you approve it, accounts pays it. Three states, nothing more.";
+  $("#view-expenses").innerHTML=`
+  ${pageHead("Reimbursements",roleNote,
+    `<button class="btn btn-primary" onclick="openAddExpense()">${ic("plus")} New claim</button>`)}
+  <div class="info-note"><span class="info-ico">${ic("inbox")}</span><div><b>Employee reimbursements only.</b> Project-related expenses are tracked separately on the <b>PEPSI</b> platform and are not raised here.</div></div>
+  <div class="grid grid-3">
+    ${statCard(selfOnly?"My pending":"Pending approval","inbox",money(pendAmt),pend.length+" claim"+(pend.length===1?"":"s")+" waiting")}
+    ${statCard("This month (Jul)","receipt",money(monthAmt),"approved + paid claims")}
+    ${statCard(selfOnly?"My claims":"Total claims","file",list.length,selfOnly?"submitted by me":"all time in system")}
+  </div>
+  <div class="card section-gap">
+    <div class="card-pad" style="padding-bottom:0"><div class="filter-bar">
+      <div class="search-inline">${ic("search")}<input class="input" placeholder="Search claim, employee, ID…" value="${esc(rf.q)}" oninput="expFilter.q=this.value;RENDER.expenses()"></div>
+      <select class="input" onchange="expFilter.status=this.value;RENDER.expenses()">${["All","Pending","Approved","Paid","Rejected"].map(s=>`<option ${rf.status===s?"selected":""}>${s}</option>`).join("")}</select>
+      <select class="input" onchange="expFilter.cat=this.value;RENDER.expenses()">${cats.map(s=>`<option ${rf.cat===s?"selected":""}>${s==="All"?"All categories":s}</option>`).join("")}</select>
+      <div class="spacer"></div><span class="chip chip-sky">${rows.length} claim${rows.length===1?"":"s"}</span>
+    </div></div>
+    <div class="tbl-wrap"><table>
+    <thead><tr><th>Claim</th><th>Employee</th><th>Category</th><th>Date</th><th>Amount</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
+    <tbody>${rows.length?rows.map(x=>`
+      <tr><td style="max-width:210px"><div class="cell-main" style="white-space:normal">${esc(x.title)}</div><div class="cell-sub mono">${x.id}</div></td>
+      <td>${empCell(x.emp)}</td><td>${esc(x.cat)}</td><td>${fdate(x.date)}</td>
+      <td class="amt" style="font-weight:800">${money(x.amt)}</td><td>${chipFor(x.status)}</td>
+      <td><div class="row-actions">${x.status==="Pending"&&canApprove
+        ?`<button class="btn btn-sm btn-primary" onclick="expAction('${x.id}','Approved')">${ic("check")} Approve</button>
+           <button class="btn btn-sm btn-slate" onclick="expAction('${x.id}','Rejected')">Reject</button>`
+        :x.status==="Approved"&&canClear?`<button class="btn btn-sm btn-soft" onclick="expAction('${x.id}','Paid')">${ic("banknote")} Clear payout</button>`
+        :`<span class="cell-sub mono">${x.id}</span>`}</div></td></tr>`).join("")
+      :`<tr><td colspan="7"><div class="empty">${ic("receipt")}<b>No claims ${rf.status!=="All"||rf.cat!=="All"||rf.q?"match your filter":"yet"}</b><p>${selfOnly?"Your reimbursement claims will show here.":"New claims will appear here."}</p></div></td></tr>`}</tbody>
+  </table></div></div>`;
+};
+function expAction(id,st){const x=DB.expenses.find(e=>e.id===id);x.status=st;toast(`Claim ${id} marked ${st.toLowerCase()}`);RENDER.expenses();}
+function openAddExpense(){
+  openModal({title:"New reimbursement claim",body:`
+    <div class="form-grid">
+      <div class="fld full"><label>What was it for?</label><input id="exTitle" class="input" placeholder="e.g. Cab to client site — JCI"></div>
+      <div class="fld"><label>Employee</label><select id="exEmp" class="input" ${isEmployee()?"disabled":""}>${(isEmployee()?DB.employees.filter(e=>e.id===DB.me):DB.employees).map(e=>`<option value="${e.id}" ${e.id===DB.me?"selected":""}>${esc(e.name)}</option>`).join("")}</select></div>
+      <div class="fld"><label>Category</label><select id="exCat" class="input"><option>Travel</option><option>Client Meeting</option><option>Hardware</option><option>Marketing</option><option>Other</option></select></div>
+      <div class="fld"><label>Amount (₹)</label><input id="exAmt" type="number" class="input" placeholder="0"></div>
+      <div class="fld"><label>Date</label><input id="exDate" type="date" class="input" value="${TODAY_ISO}"></div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveExpense()">${ic("send")} Submit claim</button>`});
+}
+function saveExpense(){
+  const t=$("#exTitle").value.trim(),amt=+$("#exAmt").value;
+  if(!t)return toast("Describe the expense first"); if(!amt||amt<=0)return toast("Enter a valid amount");
+  const x={id:"EXP-"+(DB.counters.exp++),emp:$("#exEmp").value,title:t,cat:$("#exCat").value,amt,date:$("#exDate").value,status:"Pending"};
+  DB.expenses.unshift(x); closeModal();
+  notify(`Reimbursement claim from ${emp(x.emp).name}`,`${money(amt)} · ${x.cat} · pending`,"receipt","expenses");
+  toast(`Claim ${x.id} submitted for approval`);RENDER.expenses();
+}
+
+/* ---------------- DOCUMENTS ---------------- */
+let docEmp="All";
+RENDER.documents=function(){
+  const selfOnly=isEmployee(), canVerify=can("verifyDoc");
+  if(selfOnly)docEmp=DB.me;
+  const rows=DB.documents.filter(d=>docEmp==="All"||d.emp===docEmp);
+  $("#view-documents").innerHTML=`
+  ${pageHead("Documents",selfOnly?"Upload your ID proofs, degrees and letters — HR verifies them here.":"ID proofs, degrees, letters — everything against each employee. Upload a file and verify with one tap.",
+    `<button class="btn btn-primary" onclick="openAddDoc()">${ic("upload")} Upload document</button>`)}
+  <div class="card">
+    <div class="card-pad" style="padding-bottom:0"><div class="filter-bar">
+      <select class="input" ${selfOnly?"disabled":""} onchange="docEmp=this.value;RENDER.documents()">
+        ${selfOnly?"":`<option value="All" ${docEmp==="All"?"selected":""}>All employees</option>`}
+        ${(selfOnly?DB.employees.filter(e=>e.id===DB.me):DB.employees).map(e=>`<option value="${e.id}" ${e.id===docEmp?"selected":""}>${esc(e.name)}</option>`).join("")}
+      </select>
+      <div class="spacer"></div><span class="chip chip-sky">${rows.length} documents</span>
+    </div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Document</th><th>Employee</th><th>Type</th><th>Added on</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
+      <tbody>${rows.length?rows.map(d=>`
+        <tr><td><div class="cell-main">${esc(d.name)}</div><div class="cell-sub mono">${d.id}${d.size?" · "+d.size:""}</div></td>
+        <td>${empCell(d.emp)}</td><td>${esc(d.type)}</td><td>${fdate(d.date)}</td><td>${chipFor(d.status)}</td>
+        <td><div class="row-actions">
+          ${d.status==="Pending"&&canVerify?`<button class="btn btn-sm btn-primary" onclick="verifyDoc('${d.id}')">${ic("check")} Verify</button>`:""}
+          <button class="btn btn-sm btn-ghost" onclick="viewDoc('${d.id}')">${ic("eye")} View</button>
+        </div></td></tr>`).join("")
+      :`<tr><td colspan="6"><div class="empty">${ic("file")}<b>No documents yet</b><p>${selfOnly?"Upload your first document above.":"Add the first document for this employee."}</p></div></td></tr>`}</tbody>
+    </table></div>
+  </div>`;
+};
+function verifyDoc(id){DB.documents.find(d=>d.id===id).status="Verified";toast("Document verified ✓");RENDER.documents();}
+function viewDoc(id){
+  const d=DB.documents.find(x=>x.id===id);
+  if(d&&d.fileUrl)window.open(d.fileUrl,"_blank");
+  else toast("This is demo data — uploaded files open in a new tab");
+}
+function openAddDoc(){
+  const selfOnly=isEmployee();
+  openModal({title:"Upload document",sub:"Choose a PDF or image from your device. The name is filled in from the file.",body:`
+    <div class="form-grid">
+      <div class="fld"><label>Employee</label><select id="dcEmp" class="input" ${selfOnly?"disabled":""}>${(selfOnly?DB.employees.filter(e=>e.id===DB.me):DB.employees).map(e=>`<option value="${e.id}" ${e.id===DB.me?"selected":""}>${esc(e.name)}</option>`).join("")}</select></div>
+      <div class="fld"><label>Type</label><select id="dcType" class="input"><option>Identity</option><option>Education</option><option>Employment</option><option>Bank</option><option>Other</option></select></div>
+      <div class="fld full"><label>File</label><input id="dcFile" type="file" class="input" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx" onchange="onDocFile()"></div>
+      <div class="fld full"><label>Document name</label><input id="dcName" class="input" placeholder="e.g. Aadhaar Card"></div>
+    </div>
+    <div class="form-note">Files stay in your browser for this preview. In the deployed version they upload to secure storage on the server.</div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveDoc()">${ic("upload")} Upload</button>`});
+}
+function onDocFile(){
+  const f=$("#dcFile").files[0]; if(!f)return;
+  if(!$("#dcName").value.trim())$("#dcName").value=f.name.replace(/\.[^.]+$/,"");
+}
+function humanSize(b){ return b<1024?b+" B":b<1048576?(b/1024).toFixed(0)+" KB":(b/1048576).toFixed(1)+" MB"; }
+function saveDoc(){
+  const n=$("#dcName").value.trim(); if(!n)return toast("Document name is required");
+  const f=$("#dcFile").files[0];
+  const doc={id:"DOC-"+(DB.counters.doc++),emp:$("#dcEmp").value,name:n,type:$("#dcType").value,date:TODAY_ISO,status:"Pending"};
+  if(f){ doc.fileUrl=URL.createObjectURL(f); doc.size=humanSize(f.size); }
+  DB.documents.unshift(doc);
+  closeModal();toast(f?"File uploaded — pending verification":"Document added — pending verification");RENDER.documents();
+}
+
+/* ---------------- ANNOUNCEMENTS ---------------- */
+RENDER.announcements=function(){
+  const list=[...DB.announcements].sort((a,b)=>(b.pin-a.pin)||(b.date<a.date?-1:1));
+  $("#view-announcements").innerHTML=`
+  ${pageHead("Announcements","The company notice board. Pin the important ones so they stay on top of everyone's dashboard.",
+    can("announce")?`<button class="btn btn-primary" onclick="openAddAnn()">${ic("plus")} New announcement</button>`:"")}
+  <div class="grid grid-2">
+    ${list.map(a=>`<div class="card ann-card">
+      ${a.pin?'<span class="pin">📌 Pinned</span>':""}
+      <h4>${esc(a.title)}</h4><p>${esc(a.body)}</p>
+      <div class="ann-meta"><span>${esc(a.by)} · ${fdate(a.date)}</span>
+      ${can("announce")?`<button class="btn btn-sm ${a.pin?"btn-slate":"btn-soft"}" onclick="togglePin('${a.id}')">${a.pin?"Unpin":"Pin to top"}</button>`:""}</div>
+    </div>`).join("")}
+  </div>`;
+};
+function togglePin(id){const a=DB.announcements.find(x=>x.id===id);a.pin=!a.pin;toast(a.pin?"Pinned to top":"Unpinned");RENDER.announcements();}
+function openAddAnn(){
+  openModal({title:"New announcement",body:`
+    <div class="form-grid">
+      <div class="fld full"><label>Title</label><input id="anTitle" class="input" placeholder="e.g. Office picnic on 30 August"></div>
+      <div class="fld full"><label>Message</label><textarea id="anBody" placeholder="Keep it short and clear — everyone will read this on their dashboard."></textarea></div>
+      <div class="fld full"><label class="check-pill" style="display:inline-flex"><input type="checkbox" id="anPin"> Pin to top</label></div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveAnn()">${ic("mega")} Publish</button>`});
+}
+function saveAnn(){
+  const t=$("#anTitle").value.trim(); if(!t)return toast("Title is required");
+  DB.announcements.unshift({id:"AN-"+(DB.counters.an++),title:t,body:$("#anBody").value.trim()||"—",by:"Pankaj Shukla",date:TODAY_ISO,pin:$("#anPin").checked});
+  closeModal();toast("Announcement published");refresh();
+}
+
+/* ---------------- HOLIDAYS ---------------- */
+RENDER.holidays=function(){
+  const up=DB.holidays.filter(h=>h.date>=TODAY_ISO).length;
+  $("#view-holidays").innerHTML=`
+  ${pageHead("Holidays","The 2026 holiday calendar. Upcoming ones are highlighted and also shown on the dashboard.",
+    `<button class="btn btn-primary" onclick="openAddHoliday()">${ic("plus")} Add holiday</button>`)}
+  <div class="grid grid-3">
+    ${statCard("Holidays in 2026","sun",DB.holidays.length,"company-declared")}
+    ${statCard("Remaining","cal",up,"from today onwards")}
+    ${statCard("Week off","clock",DB.settings.weekOff.join(", "),"every week")}
+  </div>
+  <div class="card section-gap"><div class="tbl-wrap"><table>
+    <thead><tr><th>Date</th><th>Day</th><th>Holiday</th><th>Status</th></tr></thead>
+    <tbody>${[...DB.holidays].sort((a,b)=>a.date<b.date?-1:1).map(h=>{const past=h.date<TODAY_ISO;return `
+      <tr style="${past?"opacity:.55":""}"><td><b>${fdate(h.date)}</b></td><td>${DOW[new Date(h.date).getDay()]}</td>
+      <td class="cell-main">${esc(h.name)}</td><td>${past?'<span class="chip chip-line">Gone</span>':'<span class="chip chip-sky">Upcoming</span>'}</td></tr>`;}).join("")}</tbody>
+  </table></div></div>`;
+};
+function openAddHoliday(){
+  openModal({title:"Add holiday",body:`
+    <div class="form-grid">
+      <div class="fld"><label>Date</label><input id="hlDate" type="date" class="input"></div>
+      <div class="fld"><label>Name</label><input id="hlName" class="input" placeholder="e.g. Company Foundation Day"></div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveHoliday()">${ic("plus")} Add</button>`});
+}
+function saveHoliday(){
+  const d=$("#hlDate").value,n=$("#hlName").value.trim();
+  if(!d||!n)return toast("Both date and name are needed");
+  DB.holidays.push({date:d,name:n}); closeModal(); toast("Holiday added to the calendar"); refresh();
+}
+
+/* ---------------- DEPARTMENTS ---------------- */
+RENDER.departments=function(){
+  $("#view-departments").innerHTML=`
+  ${pageHead("Departments","Teams and their heads. Headcount updates automatically as people join or move.",
+    `<button class="btn btn-primary" onclick="openAddDept()">${ic("plus")} Add department</button>`)}
+  <div class="grid grid-3">
+    ${DB.departments.map(d=>{const c=DB.employees.filter(e=>e.dept===d.name&&e.status==="Active").length;return `
+      <div class="card dept-card">
+        <div class="dc-ico">${ic("building")}</div>
+        <h4>${esc(d.name)}</h4><div class="dc-head">Head: ${esc(d.head)}</div>
+        <span class="dc-count">${c} member${c===1?"":"s"}</span>
+      </div>`;}).join("")}
+  </div>`;
+};
+function openAddDept(){
+  openModal({title:"Add department",body:`
+    <div class="form-grid">
+      <div class="fld"><label>Department name</label><input id="dpName" class="input" placeholder="e.g. R&D"></div>
+      <div class="fld"><label>Department head</label><select id="dpHead" class="input">${DB.employees.map(e=>`<option>${esc(e.name)}</option>`).join("")}</select></div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveDept()">${ic("plus")} Add</button>`});
+}
+function saveDept(){
+  const n=$("#dpName").value.trim(); if(!n)return toast("Department name is required");
+  DB.departments.push({id:"D"+(DB.departments.length+1),name:n,head:$("#dpHead").value});
+  closeModal();toast(`Department “${n}” created`);refresh();
+}
+
+/* ---------------- REPORTS ---------------- */
+RENDER.reports=function(){
+  const depts=DB.departments.map(d=>({name:d.name,count:DB.employees.filter(e=>e.dept===d.name).length,
+    cost:DB.employees.filter(e=>e.dept===d.name).reduce((s,e)=>s+e.salary,0)}));
+  const maxC=Math.max(...depts.map(d=>d.count)),maxCost=Math.max(...depts.map(d=>d.cost));
+  const attByDept=[["Engineering",96],["Production & IoT",91],["Sales & Marketing",93],["HR & Admin",97],["Accounts",95],["Support",89]];
+  const lvSplit=[["Casual",11,"#1465E0"],["Sick",6,"#0A3D91"],["Earned",9,"#9EC2FF"]];
+  const lvTot=lvSplit.reduce((s,x)=>s+x[1],0);
+  const trend=[["Feb",14],["Mar",15],["Apr",15],["May",16],["Jun",17],["Jul",18]];
+  let acc=0;const C=2*Math.PI*40;
+  const donutSegs=lvSplit.map(([n,v,c])=>{const len=v/lvTot*C;const s=`<circle cx="50" cy="50" r="40" fill="none" stroke="${c}" stroke-width="14" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-acc}" transform="rotate(-90 50 50)"/>`;acc+=len;return s;}).join("");
+
+  $("#view-reports").innerHTML=`
+  ${pageHead("Reports","The numbers that matter, ready-made. Export any of them as CSV for Excel.",
+    `<button class="btn btn-ghost" onclick="exportEmployeesCSV()">${ic("download")} Employees CSV</button>
+     <button class="btn btn-ghost" onclick="exportPayrollCSV()">${ic("download")} Payroll CSV</button>`)}
+  <div class="grid grid-2">
+    <div class="card card-pad"><div class="card-title">Headcount growth <span class="sub">last 6 months</span></div>
+      <div class="bars-v" style="margin-top:18px">${trend.map(([m,v],i)=>`<div class="bv"><div class="bar${i<5?" dim":""}" style="height:${v/18*100}%"><span class="val">${v}</span></div><span class="lbl">${m}</span></div>`).join("")}</div>
+    </div>
+    <div class="card card-pad"><div class="card-title">Attendance % by department <span class="sub">July so far</span></div>
+      <div class="bars-h" style="margin-top:14px">${attByDept.map(([n,v])=>`<div class="bh"><div class="bh-top"><span>${n}</span><span>${v}%</span></div><div class="track"><div class="fill" style="width:${v}%"></div></div></div>`).join("")}</div>
+    </div>
+    <div class="card card-pad"><div class="card-title">Monthly salary cost by department</div>
+      <div class="bars-h" style="margin-top:14px">${depts.map(d=>`<div class="bh"><div class="bh-top"><span>${esc(d.name)}</span><span>${money(d.cost)}</span></div><div class="track"><div class="fill" style="width:${d.cost/maxCost*100}%"></div></div></div>`).join("")}</div>
+    </div>
+    <div class="card card-pad"><div class="card-title">Leave taken this year <span class="sub">by type</span></div>
+      <div class="donut-wrap" style="margin-top:12px">
+        <svg width="130" height="130" viewBox="0 0 100 100">${donutSegs}
+          <text x="50" y="47" text-anchor="middle" font-family="Bricolage Grotesque,sans-serif" font-weight="800" font-size="19" fill="#102A4D">${lvTot}</text>
+          <text x="50" y="61" text-anchor="middle" font-size="7.5" font-weight="700" fill="#8AA2C4">DAYS</text></svg>
+        <div class="legend">${lvSplit.map(([n,v,c])=>`<span><i style="background:${c}"></i>${n} leave <b>${v}d</b></span>`).join("")}
+          <span style="margin-top:4px;color:var(--ink-3);font-weight:600;font-size:11.5px">Attrition this year: 1 exit (5.5%)</span></div>
+      </div>
+    </div>
+  </div>`;
+};
+
+/* ---------------- SETTINGS ---------------- */
+RENDER.settings=function(){
+  const s=DB.settings;
+  $("#view-settings").innerHTML=`
+  ${pageHead("Settings","Company details and the rules the whole system follows. Change, save, done.")}
+  <div class="grid grid-2" style="align-items:start">
+    <div class="card card-pad">
+      <div class="card-title">Company profile</div>
+      <div class="form-grid" style="margin-top:14px">
+        <div class="fld full"><label>Legal name (used on payslips & letters)</label><input id="stName" class="input" value="${esc(s.company)}"></div>
+        <div class="fld full"><label>Registered address</label><textarea id="stAddr">${esc(s.address)}</textarea></div>
+        <div class="fld"><label>HR email</label><input id="stEmail" class="input" value="${esc(s.email)}"></div>
+        <div class="fld"><label>Phone</label><input id="stPhone" class="input" value="${esc(s.phone)}"></div>
+      </div>
+      <div class="card-title" style="margin-top:22px">Leave policy (days per year)</div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:14px">
+        <div class="fld"><label>Casual</label><input id="stCL" type="number" class="input" value="${s.cl}"></div>
+        <div class="fld"><label>Sick</label><input id="stSL" type="number" class="input" value="${s.sl}"></div>
+        <div class="fld"><label>Earned</label><input id="stEL" type="number" class="input" value="${s.el}"></div>
+      </div>
+    </div>
+    <div class="card card-pad">
+      <div class="card-title">Attendance rules</div>
+      <div class="form-grid" style="margin-top:14px">
+        <div class="fld"><label>Office in-time</label><input id="stIn" type="time" class="input" value="${s.inTime}"></div>
+        <div class="fld"><label>Late after</label><input id="stLate" type="time" class="input" value="${s.lateAfter}"></div>
+        <div class="fld full"><label>Weekly off</label>
+          <div class="check-row">${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d=>`
+            <label class="check-pill"><input type="checkbox" class="stWeekOff" value="${d}" ${s.weekOff.includes(d)?"checked":""}>${d}</label>`).join("")}</div>
+        </div>
+      </div>
+      <div class="card-title" style="margin-top:22px">Behaviour</div>
+      <div style="margin-top:4px">
+        <div class="toggle-row"><div><b>Leave needs HR approval</b><p>Off = leaves get auto-approved instantly</p></div>
+          <label class="switch"><input type="checkbox" id="stApproval" ${s.needApproval?"checked":""}><i></i></label></div>
+        <div class="toggle-row"><div><b>Employees can self check-in</b><p>From their own phone or desktop</p></div>
+          <label class="switch"><input type="checkbox" id="stSelf" ${s.selfCheckin?"checked":""}><i></i></label></div>
+        <div class="toggle-row"><div><b>Email alerts</b><p>Approvals, payslips and announcements by email</p></div>
+          <label class="switch"><input type="checkbox" id="stMail" ${s.emailAlerts?"checked":""}><i></i></label></div>
+      </div>
+      <div style="margin-top:18px;text-align:right"><button class="btn btn-primary" onclick="saveSettings()">${ic("check")} Save settings</button></div>
+    </div>
+  </div>
+
+  <div class="card card-pad section-gap">
+    <div class="card-title">Salary structures <span class="sub">templates HR picks while building an offer — percentages of monthly gross</span></div>
+    <div class="tbl-wrap" style="margin-top:12px"><table>
+      <thead><tr><th>Structure</th><th>Basic</th><th>HRA</th><th>Special</th><th>PF</th><th>Prof. Tax</th><th style="text-align:right">Action</th></tr></thead>
+      <tbody>${DB.salaryStructures.map(ss=>`
+        <tr><td><div class="cell-main">${esc(ss.name)}</div><div class="cell-sub mono">${ss.id}${ss.gratuity?" · gratuity":""}</div></td>
+        <td>${ss.basicPct}%</td><td>${ss.hraPct}%</td><td>${ss.specialPct}%</td>
+        <td>${ss.pf?'<span class="chip chip-sky">Yes</span>':"—"}</td><td>${ss.pt?money(ss.pt):"—"}</td>
+        <td><div class="row-actions">
+          <button class="btn btn-sm btn-ghost" onclick="openStructureForm('${ss.id}')">${ic("edit")} Edit</button>
+          ${DB.salaryStructures.length>1?`<button class="btn btn-sm btn-ghost" onclick="delStructure('${ss.id}')">${ic("x")} Remove</button>`:""}
+        </div></td></tr>`).join("")}</tbody>
+    </table></div>
+    <div style="margin-top:14px"><button class="btn btn-soft" onclick="openStructureForm()">${ic("plus")} Add salary structure</button></div>
+  </div>
+
+  <div class="card card-pad section-gap">
+    <div class="card-title">Offer letter format <span class="sub">edit once — every offer you generate uses this. Change it any time.</span></div>
+    <div class="form-note" style="margin-top:10px">Available tokens (auto-filled per candidate): <span class="mono">{{NAME}} {{ROLE}} {{DEPT}} {{COMPANY}} {{ADDRESS}} {{CTC}} {{CTC_WORDS}} {{JOIN}} {{DATE}} {{HR_NAME}} {{HR_ROLE}}</span></div>
+    <textarea id="stOffer" style="min-height:300px;margin-top:12px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12.5px;line-height:1.7">${esc(s.offerTemplate)}</textarea>
+    <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="previewOffer()">${ic("eye")} Preview with sample</button>
+      <button class="btn btn-primary" onclick="saveOfferTemplate()">${ic("check")} Save format</button>
+    </div>
+  </div>
+
+  <div class="card card-pad section-gap">
+    <div class="card-title">Asset Management API <span class="sub">the master asset list is pulled from your separate Asset app</span></div>
+    <div class="toggle-row" style="margin-top:8px"><div><b>Enable asset sync</b><p>Pull laptops, monitors, kits and SIMs over API into the Assets module</p></div>
+      <label class="switch"><input type="checkbox" id="stApiOn" ${s.assetApi.enabled?"checked":""}><i></i></label></div>
+    <div class="form-grid" style="margin-top:12px">
+      <div class="fld full"><label>API endpoint URL</label><input id="stApiUrl" class="input mono" value="${esc(s.assetApi.url)}"></div>
+      <div class="fld full"><label>API key / token <span class="sub">optional — sent as Authorization: Bearer</span></label><input id="stApiKey" class="input mono" value="${esc(s.assetApi.key)}" placeholder="paste token"></div>
+    </div>
+    <div class="form-note" style="margin-top:8px">Last sync: <b>${esc(s.assetApi.lastSync)}</b>. Expected response: a JSON array of <span class="mono">{ tag, name, type, status }</span> objects.</div>
+    <div style="margin-top:14px;text-align:right"><button class="btn btn-soft" onclick="saveSettings();syncAssets()">${ic("refresh")} Save &amp; sync now</button></div>
+  </div>`;
+};
+function saveSettings(){
+  const s=DB.settings;
+  s.company=$("#stName").value;s.address=$("#stAddr").value;s.email=$("#stEmail").value;s.phone=$("#stPhone").value;
+  s.cl=+$("#stCL").value||s.cl;s.sl=+$("#stSL").value||s.sl;s.el=+$("#stEL").value||s.el;
+  s.inTime=$("#stIn").value;s.lateAfter=$("#stLate").value;
+  s.weekOff=$$(".stWeekOff:checked").map(x=>x.value);
+  s.needApproval=$("#stApproval").checked;s.selfCheckin=$("#stSelf").checked;s.emailAlerts=$("#stMail").checked;
+  if($("#stApiUrl")){ s.assetApi.url=$("#stApiUrl").value.trim(); s.assetApi.key=$("#stApiKey").value.trim(); s.assetApi.enabled=$("#stApiOn").checked; }
+  toast("Settings saved");
+}
+
+/* ---------------- EMPLOYEE PROFILE + ADD/EDIT ---------------- */
+function openEmpProfile(id){
+  const e=emp(id),bal=DB.leaveBalance[id],b=breakup(e.salary);
+  const docs=DB.documents.filter(d=>d.emp===id);
+  const myAssets=DB.assets.filter(a=>a.emp===id);
+  openModal({title:"Employee profile",wide:true,body:`
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+      ${avatar(e.name,empSeed(id),true)}
+      <div style="flex:1;min-width:160px">
+        <div style="font-family:var(--font-disp);font-weight:800;font-size:19px">${esc(e.name)}</div>
+        <div style="color:var(--ink-2);font-size:13px">${esc(e.role)} · ${esc(e.dept)}</div>
+      </div>
+      ${chipFor(e.status)}
+    </div>
+    <div class="grid grid-2">
+      <div class="card card-pad" style="box-shadow:none">
+        <div class="card-title" style="font-size:13px">Details</div>
+        <dl class="kv" style="margin-top:10px">
+          <dt>Employee ID</dt><dd class="mono">${e.id}</dd>
+          <dt>Email</dt><dd>${esc(e.email)}</dd>
+          <dt>Phone</dt><dd class="mono">${esc(e.phone)}</dd>
+          <dt>Joined</dt><dd>${fdate(e.join)}</dd>
+          <dt>Birthday</dt><dd>${fdate(e.dob)}</dd>
+          <dt>Monthly gross</dt><dd class="amt">${money(e.salary)} <span class="cell-sub">(net ${money(b.net)})</span></dd>
+        </dl>
+      </div>
+      <div style="display:grid;gap:12px;align-content:start">
+        <div class="card card-pad" style="box-shadow:none">
+          <div class="card-title" style="font-size:13px">Leave balance</div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <span class="chip chip-sky">CL ${bal.CL}/${DB.settings.cl}</span>
+            <span class="chip chip-sky">SL ${bal.SL}/${DB.settings.sl}</span>
+            <span class="chip chip-sky">EL ${bal.EL}/${DB.settings.el}</span>
+          </div>
+        </div>
+        <div class="card card-pad" style="box-shadow:none">
+          <div class="card-title" style="font-size:13px">Assets · Documents</div>
+          <div style="font-size:12.5px;color:var(--ink-2);margin-top:8px">
+            ${myAssets.length?myAssets.map(a=>`• ${esc(a.name)} <span class="mono">(${a.tag})</span>`).join("<br>"):"No assets assigned"}<br>
+            ${docs.length?`${docs.length} document${docs.length>1?"s":""} on file — <span class="link" onclick="closeModal();docEmp='${id}';go('documents')">open</span>`:"No documents on file"}
+          </div>
+        </div>
+      </div>
+    </div>`,
+  foot:`${can("manageEmployee")?`<button class="btn btn-slate" onclick="toggleEmpStatus('${id}')">${e.status==="Active"?"Deactivate":"Activate"}</button>
+        <button class="btn btn-ghost" onclick="closeModal();openEmpForm('${id}')">${ic("edit")} Edit</button>`:""}
+        <button class="btn btn-primary" onclick="closeModal();openPayslip('${id}')">${ic("file")} Payslip</button>`});
+}
+function toggleEmpStatus(id){
+  const e=emp(id); e.status=e.status==="Active"?"Inactive":"Active";
+  closeModal(); toast(`${e.name} is now ${e.status.toLowerCase()}`); refresh();
+}
+function openEmpForm(id){
+  const e=id?emp(id):null;
+  openModal({title:e?"Edit employee":"Add employee",sub:e?"":"Only six fields — the rest can be filled later.",body:`
+    <div class="form-grid">
+      <div class="fld"><label>Full name</label><input id="efName" class="input" value="${e?esc(e.name):""}" placeholder="e.g. Rahul Sharma"></div>
+      <div class="fld"><label>Designation</label><input id="efRole" class="input" value="${e?esc(e.role):""}" placeholder="e.g. Sales Executive"></div>
+      <div class="fld"><label>Department</label><select id="efDept" class="input">${DB.departments.map(d=>`<option ${e&&e.dept===d.name?"selected":""}>${esc(d.name)}</option>`).join("")}</select></div>
+      <div class="fld"><label>Monthly gross (₹)</label><input id="efSalary" type="number" class="input" value="${e?e.salary:""}" placeholder="e.g. 35000"></div>
+      <div class="fld"><label>Phone</label><input id="efPhone" class="input" value="${e?esc(e.phone):""}" placeholder="10-digit mobile"></div>
+      <div class="fld"><label>Email</label><input id="efEmail" class="input" value="${e?esc(e.email):""}" placeholder="name@itsybizz.com"></div>
+      <div class="fld"><label>Date of joining</label><input id="efJoin" type="date" class="input" value="${e?e.join:TODAY_ISO}"></div>
+      <div class="fld"><label>Date of birth</label><input id="efDob" type="date" class="input" value="${e?e.dob:""}"></div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEmp('${id||""}')">${ic("check")} ${e?"Save changes":"Add employee"}</button>`});
+}
+function saveEmp(id){
+  const name=$("#efName").value.trim(),salary=+$("#efSalary").value;
+  if(!name)return toast("Name is required");
+  if(!salary||salary<=0)return toast("Enter the monthly gross salary");
+  const data={name,role:$("#efRole").value.trim()||"—",dept:$("#efDept").value,salary,
+    phone:$("#efPhone").value.trim()||"—",email:$("#efEmail").value.trim()||"—",
+    join:$("#efJoin").value||TODAY_ISO,dob:$("#efDob").value||"2000-01-01"};
+  if(id){ Object.assign(emp(id),data); toast(`${name}'s details updated`); }
+  else{
+    const nid="EMP"+String(DB.counters.emp++).padStart(3,"0");
+    DB.employees.push({id:nid,...data,status:"Active",gender:"M"});
+    DB.attendance[nid]={st:"",in:"",out:""};
+    DB.leaveBalance[nid]={CL:DB.settings.cl,SL:DB.settings.sl,EL:DB.settings.el};
+    toast(`${name} added as ${nid} 🎉`);
+  }
+  closeModal(); refresh();
+}
+
+/* ---------------- CSV EXPORT ---------------- */
+function downloadCSV(name,rows){
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv"}));
+  a.download=name; a.click(); URL.revokeObjectURL(a.href);
+  toast(name+" downloaded");
+}
+function exportEmployeesCSV(){
+  downloadCSV("itsybizz-employees.csv",[["ID","Name","Role","Department","Email","Phone","Joined","Monthly Gross","Status"],
+    ...DB.employees.map(e=>[e.id,e.name,e.role,e.dept,e.email,e.phone,e.join,e.salary,e.status])]);
+}
+function exportPayrollCSV(){
+  downloadCSV(`itsybizz-payroll-${payMonth}.csv`,[["ID","Name","Gross","PF","PT","TDS","Deductions","Net Pay"],
+    ...DB.employees.filter(e=>e.status==="Active").map(e=>{const b=breakup(e.salary);return [e.id,e.name,e.salary,b.pf,b.pt,b.tds,b.ded,b.net];})]);
+}
+
+/* =================================================================
+   EXIT / OFFBOARDING
+   ================================================================= */
+let exitFilter={q:"",status:"All",type:"All"};
+let exitDocFilter="All";
+const CLEAR_KEYS=["IT","Finance","Admin","HR","Reporting"];
+function clearPct(ex){ const v=CLEAR_KEYS.filter(k=>ex.clearance[k]).length; return Math.round(v/CLEAR_KEYS.length*100); }
+
+RENDER.exit=function(){
+  const selfOnly=isEmployee(), manage=can("manageExit");
+  let list=selfOnly?DB.exits.filter(x=>x.emp===DB.me):DB.exits;
+  const active=DB.exits.filter(x=>["In Progress","Clearance"].includes(x.status)).length;
+  const inClear=DB.exits.filter(x=>x.status==="Clearance").length;
+  const doneYr=DB.exits.filter(x=>x.status==="Completed").length;
+  const fnfPend=DB.exits.filter(x=>x.fnfStatus==="Pending"&&x.status!=="Withdrawn").length;
+  const f=exitFilter;
+  list=list.filter(x=>(f.status==="All"||x.status===f.status)&&(f.type==="All"||x.type===f.type)&&
+    (!f.q||emp(x.emp).name.toLowerCase().includes(f.q.toLowerCase())||x.id.toLowerCase().includes(f.q.toLowerCase())));
+
+  $("#view-exit").innerHTML=`
+  ${pageHead("Exit & Offboarding",selfOnly?"Your exit process, clearances and final documents in one place.":"Track resignations end-to-end — notice, clearances, exit interview, full & final, and final letters.",
+    manage?`<button class="btn btn-primary" onclick="openExitForm()">${ic("plus")} Initiate exit</button>`:"")}
+  ${selfOnly?"":`<div class="grid grid-4">
+    ${statCard("Active exits","logout",active,"in progress right now")}
+    ${statCard("In clearance","inbox",inClear,"no-dues underway")}
+    ${statCard("Completed","check",doneYr,"fully offboarded")}
+    ${statCard("F&F pending","banknote",fnfPend,"settlements to clear")}
+  </div>`}
+
+  <div class="card section-gap">
+    <div class="card-pad" style="padding-bottom:0">
+      <div class="filter-bar">
+        <div class="search-inline">${ic("search")}<input class="input" placeholder="Search employee or exit ID…" value="${esc(f.q)}" oninput="exitFilter.q=this.value;RENDER.exit()"></div>
+        ${selfOnly?"":`<select class="input" onchange="exitFilter.status=this.value;RENDER.exit()">
+          ${["All","In Progress","Clearance","Completed","Withdrawn"].map(s=>`<option ${f.status===s?"selected":""}>${s}</option>`).join("")}</select>
+        <select class="input" onchange="exitFilter.type=this.value;RENDER.exit()">
+          ${["All","Resignation","Termination"].map(s=>`<option ${f.type===s?"selected":""}>${s}</option>`).join("")}</select>`}
+        <div class="spacer"></div><span class="chip chip-sky">${list.length} exit${list.length===1?"":"s"}</span>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Employee</th><th>Type</th><th>Applied</th><th>Last day</th><th>Clearance</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
+      <tbody>${list.length?list.map(x=>`
+        <tr><td>${empCell(x.emp)}</td><td>${chipFor(x.type)}</td><td>${fdate(x.applied)}</td><td>${fdate(x.lastDay)}</td>
+        <td style="min-width:130px"><div class="mini-prog"><i style="width:${clearPct(x)}%"></i></div><span class="cell-sub">${clearPct(x)}% cleared</span></td>
+        <td>${chipFor(x.status)}</td>
+        <td><div class="row-actions">
+          ${manage?`<button class="btn btn-sm btn-primary" onclick="openExitManage('${x.id}')">${ic("edit")} Manage</button>`:`<button class="btn btn-sm btn-soft" onclick="openExitManage('${x.id}')">${ic("eye")} View</button>`}
+        </div></td></tr>`).join("")
+        :`<tr><td colspan="7"><div class="empty">${ic("logout")}<b>No exits ${(f.status!=="All"||f.q)?"match your filter":"in progress"}</b><p>${manage?"Initiate an exit to start the offboarding process.":"When you resign, your process will show here."}</p></div></td></tr>`}</tbody>
+    </table></div>
+  </div>
+
+  <div class="card section-gap">
+    <div class="card-pad" style="padding-bottom:0"><div class="card-title">Exit documents <span class="sub">upload signed letters or build them from templates</span></div>
+      <div class="filter-bar" style="margin-top:12px">
+        <select class="input" onchange="exitDocFilter=this.value;RENDER.exit()">
+          <option value="All" ${exitDocFilter==="All"?"selected":""}>All exits</option>
+          ${DB.exits.filter(x=>selfOnly?x.emp===DB.me:true).map(x=>`<option value="${x.id}" ${exitDocFilter===x.id?"selected":""}>${x.id} · ${esc(emp(x.emp).name)}</option>`).join("")}
+        </select>
+        <div class="spacer"></div>
+        ${manage?`<button class="btn btn-soft" onclick="openExitDocBuilder()">${ic("file")} Build document</button>`:""}
+        <button class="btn btn-primary" onclick="openUploadExitDoc()">${ic("upload")} Upload</button>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Document</th><th>Exit</th><th>Type</th><th>Source</th><th>Date</th><th style="text-align:right">Action</th></tr></thead>
+      <tbody>${(()=>{const docs=DB.exitDocs.filter(d=>{const ex=DB.exits.find(e=>e.id===d.exit); if(selfOnly&&(!ex||ex.emp!==DB.me))return false; return exitDocFilter==="All"||d.exit===exitDocFilter;});
+        return docs.length?docs.map(d=>`<tr>
+          <td><div class="cell-main">${esc(d.name)}</div><div class="cell-sub mono">${d.id}${(d.size&&d.size!=="—")?" · "+d.size:""}</div></td>
+          <td class="mono">${d.exit}</td><td>${esc(d.type)}</td>
+          <td>${d.dir==="generated"?'<span class="chip chip-deep">Generated</span>':'<span class="chip chip-sky">Uploaded</span>'}</td>
+          <td>${fdate(d.date)}</td>
+          <td><div class="row-actions"><button class="btn btn-sm btn-ghost" onclick="downloadExitDoc('${d.id}')">${ic("download")} Download</button></div></td></tr>`).join("")
+        :`<tr><td colspan="6"><div class="empty">${ic("file")}<b>No exit documents yet</b><p>Upload a signed letter or build one from a template.</p></div></td></tr>`;})()}</tbody>
+    </table></div>
+  </div>`;
+};
+
+/* ---- Exit handlers ---- */
+function openExitForm(){
+  const opts=DB.employees.filter(e=>e.status==="Active"&&!DB.exits.some(x=>x.emp===e.id&&x.status!=="Completed"&&x.status!=="Withdrawn"));
+  openModal({title:"Initiate exit",sub:"Start the offboarding process for an employee.",body:`
+    <div class="form-grid">
+      <div class="fld full"><label>Employee</label><select id="exEmp" class="input">${opts.map(e=>`<option value="${e.id}">${esc(e.name)} — ${esc(e.role)}</option>`).join("")}</select></div>
+      <div class="fld"><label>Exit type</label><select id="exType" class="input"><option>Resignation</option><option>Termination</option></select></div>
+      <div class="fld"><label>Last working day</label><input id="exLast" type="date" class="input" value="2026-08-15"></div>
+      <div class="fld full"><label>Reason</label><input id="exReason" class="input" placeholder="e.g. Better opportunity, relocation…"></div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveExit()">${ic("check")} Start process</button>`});
+}
+function saveExit(){
+  const id=$("#exEmp").value; if(!id)return toast("Pick an employee");
+  const rec={id:"EX-"+String(DB.counters.exit++).padStart(3,"0"),emp:id,type:$("#exType").value,reason:$("#exReason").value.trim()||"—",
+    applied:TODAY_ISO,lastDay:$("#exLast").value,status:"In Progress",
+    clearance:{IT:false,Finance:false,Admin:false,HR:false,Reporting:false},interviewDone:false,fnfAmount:0,fnfStatus:"Pending"};
+  DB.exits.unshift(rec); closeModal(); toast("Exit initiated for "+emp(id).name.split(" ")[0]);
+  notify("Exit process started",emp(id).name,"logout","exit"); go("exit");
+}
+function openExitManage(id){
+  const x=DB.exits.find(e=>e.id===id); if(!x)return; const e=emp(x.emp);
+  const manage=can("manageExit"), clearer=can("clearExit");
+  const roDis=(!manage&&!clearer)?"disabled":"";
+  openModal({title:"Exit — "+e.name,sub:`${x.id} · ${esc(x.type)} · last day ${fdate(x.lastDay)}`,wide:true,body:`
+    <div class="exit-grid">
+      <div>
+        <div class="mini-title">No-dues clearance</div>
+        <div class="clear-list">${CLEAR_KEYS.map(k=>`
+          <label class="clear-row ${x.clearance[k]?"done":""}">
+            <input type="checkbox" ${x.clearance[k]?"checked":""} ${roDis} onchange="toggleClearance('${id}','${k}')">
+            <span>${k} clearance</span>${x.clearance[k]?`<span class="chip chip-solid">Cleared</span>`:`<span class="chip chip-line">Pending</span>`}</label>`).join("")}
+        </div>
+        <div class="mini-prog lg" style="margin-top:14px"><i style="width:${clearPct(x)}%"></i></div>
+        <div class="cell-sub" style="margin-top:6px">${clearPct(x)}% complete</div>
+      </div>
+      <div>
+        <div class="mini-title">Exit interview</div>
+        <label class="toggle-row" style="border:1px solid var(--line);border-radius:10px;padding:12px"><div><b>Interview done</b><p>Feedback captured</p></div>
+          <span class="switch"><input type="checkbox" ${x.interviewDone?"checked":""} ${manage?"":"disabled"} onchange="setExitInterview('${id}',this.checked)"><i></i></span></label>
+        <div class="mini-title" style="margin-top:16px">Full &amp; Final</div>
+        <div class="form-grid"><div class="fld full"><label>Settlement amount (₹)</label><input id="exFnf" type="number" class="input" value="${x.fnfAmount}" ${manage?"":"disabled"}></div></div>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">Status: ${chipFor(x.fnfStatus)}
+          ${manage?`<button class="btn btn-sm btn-soft" onclick="saveFnf('${id}')">${ic("check")} Save F&amp;F</button>
+          ${x.fnfStatus==="Pending"?`<button class="btn btn-sm btn-primary" onclick="settleFnf('${id}')">${ic("banknote")} Mark settled</button>`:""}`:""}</div>
+      </div>
+    </div>
+    <div class="mini-title" style="margin-top:18px">Documents</div>
+    <div class="doc-chips">${DB.exitDocs.filter(d=>d.exit===id).map(d=>`<span class="doc-chip" onclick="downloadExitDoc('${d.id}')">${ic("file")} ${esc(d.type)} ${ic("download")}</span>`).join("")||'<span class="cell-sub">No documents yet.</span>'}</div>
+    ${manage?`<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-soft" onclick="openExitDocBuilder('${id}')">${ic("file")} Build letter</button>
+      <button class="btn btn-sm btn-ghost" onclick="openUploadExitDoc('${id}')">${ic("upload")} Upload</button></div>`:""}`,
+  foot:manage?`<button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      ${(x.status!=="Completed"&&x.status!=="Withdrawn")?`<button class="btn btn-slate" onclick="withdrawExit('${id}')">Withdraw</button>
+      <button class="btn btn-primary" onclick="completeExit('${id}')">${ic("check")} Complete exit</button>`:""}`:`<button class="btn btn-primary" onclick="closeModal()">Close</button>`});
+}
+function toggleClearance(id,k){ const x=DB.exits.find(e=>e.id===id); x.clearance[k]=!x.clearance[k];
+  if(clearPct(x)===100&&x.status==="In Progress")x.status="Clearance";
+  openExitManage(id); RENDER.exit(); }
+function setExitInterview(id,v){ DB.exits.find(e=>e.id===id).interviewDone=v; toast(v?"Interview marked done":"Interview reopened"); }
+function saveFnf(id){ const x=DB.exits.find(e=>e.id===id); x.fnfAmount=+$("#exFnf").value||0; toast("F&F amount saved"); openExitManage(id); }
+function settleFnf(id){ const x=DB.exits.find(e=>e.id===id); if(!x.fnfAmount)return toast("Enter the F&F amount first"); x.fnfStatus="Settled"; toast("Full & final marked settled"); openExitManage(id); RENDER.exit(); }
+function withdrawExit(id){ confirmBox("Withdraw this exit?","The employee stays active and the process is cancelled.","Withdraw",()=>{ const x=DB.exits.find(e=>e.id===id); x.status="Withdrawn"; closeModal(); toast("Exit withdrawn"); RENDER.exit(); }); }
+function completeExit(id){ const x=DB.exits.find(e=>e.id===id);
+  if(clearPct(x)<100)return toast("Finish all clearances before completing");
+  confirmBox("Complete this exit?","The employee will be marked inactive and relieved.","Complete exit",()=>{ x.status="Completed"; const e=emp(x.emp); if(e.status)e.status="Inactive"; closeModal(); toast(e.name.split(" ")[0]+" offboarded"); RENDER.exit(); }); }
+
+/* ---- Exit document builder ---- */
+function openExitDocBuilder(exitId){
+  const exits=DB.exits;
+  const eid=exitId||exits[0].id;
+  window.__exBuild=eid;
+  const tpls=Object.keys(DB.settings.exitTemplates);
+  openModal({title:"Build exit document",sub:"Pick an employee's exit and a letter type — it fills automatically.",wide:true,body:`
+    <div class="form-grid">
+      <div class="fld"><label>Exit</label><select id="edExit" class="input" onchange="window.__exBuild=this.value;exitDocPreview()">
+        ${exits.map(x=>`<option value="${x.id}" ${x.id===eid?"selected":""}>${x.id} · ${esc(emp(x.emp).name)}</option>`).join("")}</select></div>
+      <div class="fld"><label>Document type</label><select id="edType" class="input" onchange="exitDocPreview()">
+        ${tpls.map(t=>`<option>${t}</option>`).join("")}</select></div>
+    </div>
+    <div id="edPreview" style="margin-top:8px"></div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="genExitDoc()">${ic("file")} Generate &amp; save</button>`});
+  exitDocPreview();
+}
+function exitDocMap(x){
+  const e=emp(x.emp), me=emp(DB.me), s=DB.settings;
+  return {DATE:fdate(TODAY_ISO),NAME:e.name,EMPID:e.id,ROLE:e.role||"—",DEPT:e.dept||"—",
+    COMPANY:s.company,ADDRESS:s.address,JOIN:fdate(e.join||""),LASTDAY:fdate(x.lastDay),
+    FNF:money(x.fnfAmount),FNF_WORDS:inWords(x.fnfAmount)+" Rupees",HR_NAME:me.name,HR_ROLE:myRole()};
+}
+function exitDocPreview(){
+  const x=DB.exits.find(e=>e.id===window.__exBuild); const type=$("#edType").value;
+  const txt=fillTemplate(DB.settings.exitTemplates[type],exitDocMap(x));
+  $("#edPreview").innerHTML=`<div class="letter-preview"><div class="lp-head"><b>${esc(DB.settings.company)}</b><span class="mono">${esc(DB.settings.address)}</span></div><pre>${esc(txt)}</pre></div>`;
+}
+function genExitDoc(){
+  const x=DB.exits.find(e=>e.id===window.__exBuild); const type=$("#edType").value;
+  const letter=fillTemplate(DB.settings.exitTemplates[type],exitDocMap(x));
+  const rec={id:"DX-"+(DB.counters.dx++),exit:x.id,name:`${type} — ${emp(x.emp).name}`,type,date:TODAY_ISO,dir:"generated",size:"—",letter};
+  DB.exitDocs.unshift(rec); DB.exitGen.unshift(rec); closeModal(); toast(type+" generated"); showExitLetter(rec.id); RENDER.exit();
+}
+function showExitLetter(docId){
+  const d=DB.exitDocs.find(x=>x.id===docId); if(!d)return;
+  const x=DB.exits.find(e=>e.id===d.exit);
+  const letter=d.letter||fillTemplate(DB.settings.exitTemplates[d.type]||"",x?exitDocMap(x):{});
+  window.__exPrint=letter;
+  openModal({title:d.type,sub:d.name,wide:true,body:`<div class="letter-preview big"><div class="lp-head"><b>${esc(DB.settings.company)}</b><span class="mono">${esc(DB.settings.address)}</span></div><pre>${esc(letter)}</pre></div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Close</button><button class="btn btn-primary" onclick="printExitLetter()">${ic("download")} Print / Save PDF</button>`});
+}
+function printExitLetter(){
+  const w=window.open("","_blank");
+  w.document.write(`<html><head><title>Exit Document</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:40px;color:#102A4D;max-width:720px;margin:auto}h3{text-align:center;margin:0 0 4px}.sub{text-align:center;color:#5B77A0;font-size:12px;margin-bottom:24px}pre{white-space:pre-wrap;font-family:inherit;line-height:1.7;font-size:14px}</style></head><body><h3>${esc(DB.settings.company)}</h3><div class="sub">${esc(DB.settings.address)}</div><pre>${esc(window.__exPrint||"")}</pre></body></html>`);
+  w.document.close(); setTimeout(()=>{try{w.print();}catch(e){}},250);
+}
+function openUploadExitDoc(exitId){
+  const exits=DB.exits.filter(x=>isEmployee()?x.emp===DB.me:true);
+  openModal({title:"Upload exit document",sub:"Attach a signed resignation, acceptance or handover document.",body:`
+    <div class="form-grid">
+      <div class="fld full"><label>Exit</label><select id="uxExit" class="input">${exits.map(x=>`<option value="${x.id}" ${x.id===exitId?"selected":""}>${x.id} · ${esc(emp(x.emp).name)}</option>`).join("")}</select></div>
+      <div class="fld"><label>Type</label><select id="uxType" class="input"><option>Resignation Letter</option><option>Acceptance</option><option>Handover Note</option><option>No-Dues Clearance</option><option>Other</option></select></div>
+      <div class="fld"><label>File</label><input id="uxFile" type="file" class="input" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" onchange="onExitFile()"></div>
+      <div class="fld full"><label>Document name</label><input id="uxName" class="input" placeholder="filled from file"></div>
+    </div>
+    <div class="form-note">Files stay in your browser for this preview. In the deployed version they upload to secure storage.</div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveExitDoc()">${ic("upload")} Upload</button>`});
+}
+function onExitFile(){ const f=$("#uxFile").files[0]; if(f&&!$("#uxName").value)$("#uxName").value=f.name.replace(/\.[^.]+$/,""); }
+function saveExitDoc(){
+  const ex=$("#uxExit").value, f=$("#uxFile").files[0];
+  const name=$("#uxName").value.trim()||(f?f.name:""); if(!name)return toast("Choose a file first");
+  const size=f?(f.size<1024?f.size+" B":f.size<1048576?Math.round(f.size/1024)+" KB":(f.size/1048576).toFixed(1)+" MB"):"—";
+  DB.exitDocs.unshift({id:"DX-"+(DB.counters.dx++),exit:ex,name,type:$("#uxType").value,date:TODAY_ISO,dir:"upload",size});
+  closeModal(); toast("Document uploaded"); RENDER.exit();
+}
+function downloadExitDoc(id){
+  const d=DB.exitDocs.find(x=>x.id===id); if(!d)return;
+  if(d.dir==="generated"||d.letter){ showExitLetter(id); return; }
+  toast("Downloading "+d.name);
+}
+
+/* ---------------- SALARY STRUCTURES (Settings) ---------------- */
+function openStructureForm(id){
+  const ss=id?DB.salaryStructures.find(s=>s.id===id):{name:"",basicPct:50,hraPct:20,specialPct:30,pf:true,pt:200,gratuity:true};
+  window.__ssEdit=id||null;
+  openModal({title:id?"Edit salary structure":"New salary structure",sub:"Special allowance is the balancing figure so the three always add up to 100%.",body:`
+    <div class="form-grid">
+      <div class="fld full"><label>Structure name</label><input id="ssName" class="input" value="${esc(ss.name)}" placeholder="e.g. Standard (Engineering)"></div>
+      <div class="fld"><label>Basic %</label><input id="ssBasic" type="number" class="input" value="${ss.basicPct}" oninput="ssSpecial()"></div>
+      <div class="fld"><label>HRA %</label><input id="ssHra" type="number" class="input" value="${ss.hraPct}" oninput="ssSpecial()"></div>
+      <div class="fld"><label>Special allowance %</label><input id="ssSpec" class="input" value="${ss.specialPct}" disabled></div>
+      <div class="fld"><label>Professional tax (₹ / month)</label><input id="ssPt" type="number" class="input" value="${ss.pt}"></div>
+      <div class="fld full"><label class="check-pill" style="width:100%"><input type="checkbox" id="ssPf" ${ss.pf?"checked":""}> Deduct Provident Fund (12% of basic, capped at ₹1,800)</label></div>
+      <div class="fld full"><label class="check-pill" style="width:100%"><input type="checkbox" id="ssGr" ${ss.gratuity?"checked":""}> Eligible for gratuity</label></div>
+    </div>`,
+  foot:`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveStructure()">${ic("check")} Save structure</button>`});
+}
+function ssSpecial(){ const b=+$("#ssBasic").value||0,h=+$("#ssHra").value||0; $("#ssSpec").value=Math.max(0,100-b-h); }
+function saveStructure(){
+  const name=$("#ssName").value.trim(); if(!name)return toast("Give the structure a name");
+  const b=+$("#ssBasic").value||0,h=+$("#ssHra").value||0;
+  if(b+h>100)return toast("Basic + HRA can't cross 100%");
+  const rec={name,basicPct:b,hraPct:h,specialPct:Math.max(0,100-b-h),pf:$("#ssPf").checked,pt:+$("#ssPt").value||0,gratuity:$("#ssGr").checked};
+  if(window.__ssEdit){ Object.assign(DB.salaryStructures.find(s=>s.id===window.__ssEdit),rec); toast("Structure updated"); }
+  else{ rec.id="SS"+(DB.counters.ss++); DB.salaryStructures.push(rec); toast("Structure added"); }
+  closeModal(); RENDER.settings();
+}
+function delStructure(id){
+  confirmBox("Remove this salary structure?","Offers already generated won't be affected.","Remove",()=>{
+    DB.salaryStructures=DB.salaryStructures.filter(s=>s.id!==id); toast("Structure removed"); RENDER.settings();
+  });
+}
+
+/* ---------------- OFFER LETTER FORMAT (Settings) ---------------- */
+function saveOfferTemplate(){ DB.settings.offerTemplate=$("#stOffer").value; toast("Offer letter format saved"); }
+function previewOffer(){
+  const s=DB.settings, me=emp(DB.me);
+  const sample={DATE:fdate(TODAY_ISO),NAME:"Aisha Khan",ROLE:"MERN Developer",DEPT:"Engineering",
+    COMPANY:s.company,ADDRESS:s.address,CTC:money(600000),CTC_WORDS:inWords(600000)+" Rupees",
+    JOIN:fdate("2026-08-01"),HR_NAME:me.name,HR_ROLE:myRole()};
+  const txt=fillTemplate($("#stOffer").value,sample);
+  openModal({title:"Offer letter preview",sub:"Your current format filled with sample data.",wide:true,
+    body:`<div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px 30px;max-height:60vh;overflow:auto">
+      <div style="text-align:center;margin-bottom:16px"><b style="font-size:16px;color:var(--ink)">${esc(s.company)}</b><br><span class="mono" style="font-size:11px;color:var(--ink-2)">${esc(s.address)}</span></div>
+      <pre style="white-space:pre-wrap;font-family:inherit;font-size:13px;line-height:1.7;color:var(--ink);margin:0">${esc(txt)}</pre></div>`,
+    foot:`<button class="btn btn-primary" onclick="closeModal()">Close</button>`});
+}
+
+/* ---------------- INIT ---------------- */
+(function init(){
+  setUserChip(); buildSidebar(); renderNotifs(); go("dashboard");
+})();
+</script>
+</body>
+</html>
