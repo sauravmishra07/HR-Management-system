@@ -10,7 +10,9 @@ const documentSchema = new mongoose.Schema(
     type: { type: String, required: true }, // Identity, Education, Employment ...
     date: { type: String, default: '' }, // ISO date string (YYYY-MM-DD)
     status: { type: String, enum: Object.values(DOC_STATUS), default: DOC_STATUS.PENDING, index: true },
-    filePath: { type: String, default: '' }, // /uploads/documents/<file>
+    filePath: { type: String, default: '' }, // Cloudinary secure URL (served directly)
+    publicId: { type: String, default: '' }, // Cloudinary public_id (needed to delete)
+    resourceType: { type: String, default: 'image' }, // image | raw | video (delete needs this)
     size: { type: String, default: '' }, // humanized byte size
     deletedAt: { type: Date, default: null },
   },

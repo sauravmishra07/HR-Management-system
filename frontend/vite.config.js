@@ -14,8 +14,8 @@ export default defineConfig({
     port: 5173,
     proxy: {
       // Proxy API + uploads to the Render backend during development.
-      '/api': { target: 'https://hr-management-system-bvfx.onrender.com', changeOrigin: true, secure: true },
-      '/uploads': { target: 'https://hr-management-system-bvfx.onrender.com', changeOrigin: true, secure: true },
+      '/api': { target: 'http://localhost:5000', changeOrigin: true, secure: true },
+      '/uploads': { target: 'http://localhost:5000', changeOrigin: true, secure: true },
     },
   },
 });

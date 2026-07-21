@@ -5,6 +5,8 @@ import { nextId } from '../../common/models/counter.model.js';
 import { DOC_STATUS, AUDIT_ACTIONS } from '../../common/constants/index.js';
 import { attachEmployees } from '../../common/utils/enrich.js';
 import { can } from '../../common/utils/rbac.js';
+import { uploadBuffer, destroyAsset } from '../../common/utils/cloudinary.js';
+import config from '../../config/index.js';
 import * as audit from '../audit/audit.service.js';
 
 /** Today as an ISO date (YYYY-MM-DD). */
@@ -62,7 +64,15 @@ export async function create(data, file, actor) {
     status: DOC_STATUS.PENDING,
   };
   if (file) {
-    payload.filePath = `/uploads/documents/${file.filename}`;
+    // Stream the in-memory buffer straight to Cloudinary (throws a clear error
+    // if credentials are not configured).
+    const asset = await uploadBuffer(file.buffer, {
+      folder: `${config.cloudinary.folder}/documents`,
+      filename: file.originalname,
+    });
+    payload.filePath = asset.url;
+    payload.publicId = asset.publicId;
+    payload.resourceType = asset.resourceType;
     payload.size = humanSize(file.size);
   }
   const doc = await repo.create(payload);
@@ -96,6 +106,8 @@ export async function remove(id, user) {
     if (doc.status !== DOC_STATUS.PENDING) throw ApiError.badRequest('Only pending documents can be deleted');
   }
   await repo.softDelete(id);
+  // Best-effort removal of the stored file from Cloudinary (never throws).
+  if (doc.publicId) await destroyAsset(doc.publicId, doc.resourceType);
   audit.record({ action: AUDIT_ACTIONS.DELETE, entity: 'Document', entityId: doc.code, actor: user, description: `Deleted document ${doc.name}` });
   return { deleted: true };
 }

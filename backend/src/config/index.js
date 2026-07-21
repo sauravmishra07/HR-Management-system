@@ -62,6 +62,19 @@ export const config = {
     maxFileSizeMb: num(process.env.MAX_FILE_SIZE_MB, 10),
   },
 
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+    folder: process.env.CLOUDINARY_FOLDER || 'ramp-hrms',
+    // Enabled only when all three credentials are present.
+    enabled: Boolean(
+      process.env.CLOUDINARY_CLOUD_NAME &&
+        process.env.CLOUDINARY_API_KEY &&
+        process.env.CLOUDINARY_API_SECRET
+    ),
+  },
+
   seedDefaultPassword: process.env.SEED_DEFAULT_PASSWORD || 'Password@123',
 };
 
