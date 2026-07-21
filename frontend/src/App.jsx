@@ -5,7 +5,7 @@ import RoleRoute from '@/routes/RoleRoute';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import LoginPage from '@/features/auth/LoginPage';
 import { ConfirmProvider, ToastHost } from '@/components/ui';
-import { PageLoader } from '@/components/ui/Spinner';
+import { PageSkeleton } from '@/components/ui';
 import { useApplyTheme } from '@/hooks/useTheme';
 
 const pages = {
@@ -14,6 +14,7 @@ const pages = {
   attendance: lazy(() => import('@/features/attendance/AttendancePage')),
   leaves: lazy(() => import('@/features/leaves/LeavesPage')),
   payroll: lazy(() => import('@/features/payroll/PayrollPage')),
+  idcard: lazy(() => import('@/features/idcard/IDCardPage')),
   exit: lazy(() => import('@/features/exit/ExitPage')),
   recruitment: lazy(() => import('@/features/recruitment/RecruitmentPage')),
   performance: lazy(() => import('@/features/performance/PerformancePage')),
@@ -41,7 +42,7 @@ export default function App() {
                 <Route
                   path={`/${view}`}
                   element={
-                    <Suspense fallback={<PageLoader />}>
+                    <Suspense fallback={<PageSkeleton view={view} />}>
                       <Page />
                     </Suspense>
                   }

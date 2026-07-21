@@ -13,6 +13,7 @@ export { default as EmployeeCell } from './EmployeeCell';
 export { default as Tabs } from './Tabs';
 export { default as ThemeToggle } from './ThemeToggle';
 export { default as Spinner, PageLoader } from './Spinner';
+export { default as PageSkeleton } from './PageSkeleton';
 export { Field, TextInput, TextArea, Select } from './Field';
 export { ConfirmProvider, useConfirm } from './ConfirmProvider';
 export { default as ToastHost } from './ToastHost';
