@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { store } from '@/store';
 import { setCredentials, logout } from '@/store/authSlice';
+import { disconnectSocket } from '@/lib/socket';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -41,6 +42,7 @@ api.interceptors.response.use(
         return api(original);
       } catch (e) {
         refreshing = null;
+        disconnectSocket();
         store.dispatch(logout());
         return Promise.reject(e);
       }

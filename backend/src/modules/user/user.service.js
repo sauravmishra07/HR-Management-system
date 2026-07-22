@@ -4,6 +4,9 @@ import ApiError from '../../common/utils/ApiError.js';
 import { parsePagination, buildMeta, buildSearch } from '../../common/utils/query.js';
 import * as audit from '../audit/audit.service.js';
 import { AUDIT_ACTIONS, ROLE_VALUES } from '../../common/constants/index.js';
+import { emitToDDD } from '../../common/integration/ddd.client.js';
+import { broadcastChange } from '../../realtime/index.js';
+import { toEmployeePayload } from '../employee/employee.service.js';
 
 export async function list(query) {
   const { page, limit, skip, sort } = parsePagination(query);
@@ -43,6 +46,15 @@ export async function changeRole(id, role, actor) {
     actor,
     description: `Changed role of ${user.name} to ${role}`,
   });
+  // Sync the access change to DDD (fire-and-forget; never blocks the operation).
+  Employee.findOne({ user: id, deletedAt: null })
+    .lean()
+    .then((emp) => {
+      if (!emp) return undefined;
+      broadcastChange('employees', toEmployeePayload(emp));
+      return emitToDDD('employee.updated', toEmployeePayload(emp));
+    })
+    .catch(() => {});
   return user.toSafeJSON();
 }
 

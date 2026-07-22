@@ -4,11 +4,13 @@ import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import { useRealtime } from '@/hooks/useRealtime';
 
 /** App shell: fixed sidebar + topbar with an animated content outlet. */
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  useRealtime();
 
   return (
     <div className="app-shell">

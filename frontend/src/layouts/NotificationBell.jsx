@@ -15,7 +15,8 @@ export default function NotificationBell() {
   const { data } = useQuery({
     queryKey: ['notifications'],
     queryFn: notificationApi.list,
-    refetchInterval: 60_000,
+    // Realtime 'notification:new' events refresh this instantly; polling is a fallback.
+    refetchInterval: 5 * 60_000,
     select: (res) => (Array.isArray(res.data) ? res.data : res.data?.items || []),
   });
 

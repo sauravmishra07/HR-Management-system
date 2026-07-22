@@ -76,6 +76,12 @@ export const config = {
   },
 
   seedDefaultPassword: process.env.SEED_DEFAULT_PASSWORD || 'Password@123',
+
+  // ---- DDD (ITSYBIZZ Command Center) integration ----
+  // Shared secret for server-to-server calls in BOTH directions (x-api-key header).
+  integrationApiKey: process.env.INTEGRATION_API_KEY || '',
+  dddApiUrl: process.env.DDD_API_URL || 'http://localhost:5500/api/v1',
+  integrationEnabled: bool(process.env.INTEGRATION_ENABLED, false),
 };
 
 /** Fail fast if critical secrets are missing. */

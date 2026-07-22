@@ -6,6 +6,32 @@ import { lookupEmployee } from '../../common/utils/enrich.js';
 import { EMPLOYEE_STATUS, PAYROLL_STATUS, AUDIT_ACTIONS, ROLES } from '../../common/constants/index.js';
 import * as audit from '../audit/audit.service.js';
 import logger from '../../common/utils/logger.js';
+import { emitToDDD } from '../../common/integration/ddd.client.js';
+import { broadcastChange } from '../../realtime/index.js';
+// NOTE: integration.service.js also imports this module — safe ESM cycle, the
+// helper is a hoisted function declaration only invoked at runtime.
+import { computePayrollAggregates } from '../integration/integration.service.js';
+
+/** Fire-and-forget payroll.changed push to DDD with computed aggregates. Never throws. */
+function emitPayrollChanged(run) {
+  broadcastChange('payroll', {
+    month: run.month,
+    status: run.status,
+    paidOn: run.paidOn || '',
+    paidEmps: run.paidEmps || [],
+  });
+  computePayrollAggregates()
+    .then((aggregates) =>
+      emitToDDD('payroll.changed', {
+        month: run.month,
+        status: run.status,
+        paidOn: run.paidOn || '',
+        paidEmps: run.paidEmps || [],
+        aggregates,
+      })
+    )
+    .catch(() => {});
+}
 
 /** Current month as 'YYYY-MM'. */
 function currentMonth() {
@@ -107,6 +133,7 @@ export async function runPayroll(month, actor) {
     actor,
     description: `Ran payroll for ${month} (${empIds.length} employees)`,
   });
+  emitPayrollChanged(run);
   return run;
 }
 
@@ -132,6 +159,7 @@ export async function payEmployee(month, empId, actor) {
     actor,
     description: `Paid ${empId} for ${month}`,
   });
+  emitPayrollChanged(run);
   return run;
 }
 

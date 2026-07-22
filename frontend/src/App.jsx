@@ -13,6 +13,7 @@ const pages = {
   employees: lazy(() => import('@/features/employees/EmployeesPage')),
   attendance: lazy(() => import('@/features/attendance/AttendancePage')),
   leaves: lazy(() => import('@/features/leaves/LeavesPage')),
+  eveningreport: lazy(() => import('@/features/eveningReport/EveningReportPage')),
   payroll: lazy(() => import('@/features/payroll/PayrollPage')),
   idcard: lazy(() => import('@/features/idcard/IDCardPage')),
   exit: lazy(() => import('@/features/exit/ExitPage')),

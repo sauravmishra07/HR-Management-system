@@ -1,5 +1,6 @@
 import * as repo from './notification.repository.js';
 import ApiError from '../../common/utils/ApiError.js';
+import { notifyUser, notifyAll } from '../../realtime/index.js';
 
 export async function list(empId) {
   const [items, unreadCount] = await Promise.all([
@@ -10,7 +11,7 @@ export async function list(empId) {
 }
 
 export async function create(data) {
-  return repo.create({
+  const notification = await repo.create({
     t: data.t,
     s: data.s,
     ico: data.ico || '',
@@ -18,6 +19,10 @@ export async function create(data) {
     user: data.user || '',
     read: false,
   });
+  // Real-time bell push: targeted when the notification has an owner, broadcast otherwise.
+  if (notification.user) notifyUser(notification.user, 'notification:new', { notification });
+  else notifyAll('notification:new', { notification });
+  return notification;
 }
 
 export async function markRead(id, empId) {

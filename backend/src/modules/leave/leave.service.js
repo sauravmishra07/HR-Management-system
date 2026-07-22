@@ -7,6 +7,25 @@ import Settings from '../settings/settings.model.js';
 import { can } from '../../common/utils/rbac.js';
 import * as audit from '../audit/audit.service.js';
 import { AUDIT_ACTIONS, LEAVE_TYPES, LEAVE_STATUS, ROLES } from '../../common/constants/index.js';
+import { emitToDDD } from '../../common/integration/ddd.client.js';
+import { broadcastChange } from '../../realtime/index.js';
+
+/** Integration contract payload for leave.* events (works on docs and lean objects). */
+function toLeavePayload(doc) {
+  return {
+    code: doc.code,
+    emp: doc.emp,
+    type: doc.type,
+    from: doc.from,
+    to: doc.to,
+    days: doc.days,
+    reason: doc.reason,
+    status: doc.status,
+    applied: doc.applied,
+    approver: doc.approver,
+    decidedAt: doc.decidedAt,
+  };
+}
 
 const pad2 = (n) => String(n).padStart(2, '0');
 
@@ -88,6 +107,8 @@ export async function create(data, actor) {
     actor,
     description: `Applied ${data.type} leave ${data.from} to ${data.to}`,
   });
+  emitToDDD('leave.created', toLeavePayload(leave)).catch(() => {});
+  broadcastChange('leaves', toLeavePayload(leave));
   const [enriched] = await attachEmployees([leave.toObject()], 'emp');
   return enriched;
 }
@@ -108,6 +129,8 @@ export async function approve(id, actor) {
     actor,
     description: `Approved leave ${leave.code}`,
   });
+  emitToDDD('leave.decided', toLeavePayload(updated)).catch(() => {});
+  broadcastChange('leaves', toLeavePayload(updated));
   const [enriched] = await attachEmployees([updated.toObject()], 'emp');
   return enriched;
 }
@@ -128,6 +151,8 @@ export async function reject(id, actor) {
     actor,
     description: `Rejected leave ${leave.code}`,
   });
+  emitToDDD('leave.decided', toLeavePayload(updated)).catch(() => {});
+  broadcastChange('leaves', toLeavePayload(updated));
   const [enriched] = await attachEmployees([updated.toObject()], 'emp');
   return enriched;
 }
@@ -151,5 +176,7 @@ export async function remove(id, actor) {
     actor,
     description: `Removed leave ${leave.code}`,
   });
+  emitToDDD('leave.deleted', toLeavePayload(leave)).catch(() => {});
+  broadcastChange('leaves', toLeavePayload(leave));
   return { deleted: true };
 }

@@ -56,6 +56,12 @@ export const leaveApi = {
   remove: (id) => unwrap(api.delete(`/leaves/${id}`)),
 };
 
+/* -------------------- Evening Reports -------------------- */
+export const eveningReportApi = {
+  list: (params) => unwrap(api.get(`/evening-reports${qs(params)}`)),
+  submit: (body) => unwrap(api.post('/evening-reports', body)),
+};
+
 /* -------------------- Payroll -------------------- */
 export const payrollApi = {
   get: (params) => unwrap(api.get(`/payroll${qs(params)}`)),

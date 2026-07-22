@@ -18,6 +18,8 @@ import exitRoutes from '../modules/exit/exit.routes.js';
 import reportRoutes from '../modules/report/report.routes.js';
 import settingsRoutes from '../modules/settings/settings.routes.js';
 import auditRoutes from '../modules/audit/audit.routes.js';
+import eveningReportRoutes from '../modules/eveningReport/eveningReport.routes.js';
+import integrationRoutes from '../modules/integration/integration.routes.js';
 
 const router = Router();
 
@@ -42,6 +44,9 @@ const modules = [
   ['/reports', reportRoutes],
   ['/settings', settingsRoutes],
   ['/audit', auditRoutes],
+  ['/evening-reports', eveningReportRoutes],
+  // Server-to-server DDD ops API — x-api-key guarded inside the module router, no JWT.
+  ['/integration', integrationRoutes],
 ];
 
 modules.forEach(([path, handler]) => router.use(path, handler));

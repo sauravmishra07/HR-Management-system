@@ -7,6 +7,11 @@ import { attachEmployees } from '../../common/utils/enrich.js';
 import { can } from '../../common/utils/rbac.js';
 import * as audit from '../audit/audit.service.js';
 import { AUDIT_ACTIONS, ATTENDANCE_STATUS, EMPLOYEE_STATUS } from '../../common/constants/index.js';
+import { emitToDDD } from '../../common/integration/ddd.client.js';
+import { broadcastChange } from '../../realtime/index.js';
+
+/** Integration contract payload for attendance.marked (from the upserted row). */
+const toAttendancePayload = (r) => ({ emp: r.emp, date: r.date, st: r.st, in: r.in, out: r.out });
 
 const pad2 = (n) => String(n).padStart(2, '0');
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -101,6 +106,8 @@ export async function checkIn(empId, actor) {
     actor,
     description: `${target} checked in`,
   });
+  emitToDDD('attendance.marked', toAttendancePayload(record)).catch(() => {});
+  broadcastChange('attendance', toAttendancePayload(record));
   return record;
 }
 
@@ -120,6 +127,8 @@ export async function checkOut(empId, actor) {
     actor,
     description: `${target} checked out`,
   });
+  emitToDDD('attendance.marked', toAttendancePayload(record)).catch(() => {});
+  broadcastChange('attendance', toAttendancePayload(record));
   return record;
 }
 
@@ -138,6 +147,8 @@ export async function mark({ empId, status, date }, actor) {
     actor,
     description: `Marked ${empId} as '${status}' on ${day}`,
   });
+  emitToDDD('attendance.marked', toAttendancePayload(record)).catch(() => {});
+  broadcastChange('attendance', toAttendancePayload(record));
   return record;
 }
 

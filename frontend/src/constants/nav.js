@@ -8,6 +8,7 @@ export const NAV = [
       ['employees', 'Employees', 'users'],
       ['attendance', 'Attendance', 'clock'],
       ['leaves', 'Leave', 'cal'],
+      ['eveningreport', 'Evening Report', 'file'],
       ['payroll', 'Payroll', 'banknote'],
       ['idcard', 'Issued ID Card', 'user-check'],
       ['exit', 'Exit Process', 'logout'],
@@ -40,6 +41,7 @@ export const TITLES = {
   employees: 'Employees',
   attendance: 'Attendance',
   leaves: 'Leave Management',
+  eveningreport: 'Evening Report',
   payroll: 'Payroll',
   exit: 'Exit & Offboarding',
   recruitment: 'Recruitment',
@@ -60,16 +62,17 @@ export const ROLES = ['HR Admin', 'HR Representative', 'Finance Representative',
 export const ROLE_VIEWS = {
   'HR Admin': NAV.flatMap((g) => g.items.map((i) => i[0])),
   'HR Representative': [
-    'dashboard', 'employees', 'attendance', 'leaves', 'payroll', 'idcard', 'exit', 'recruitment', 'performance',
+    'dashboard', 'employees', 'attendance', 'leaves', 'eveningreport', 'payroll', 'idcard', 'exit', 'recruitment', 'performance',
     'assets', 'expenses', 'documents', 'announcements', 'holidays', 'departments', 'reports',
   ],
-  'Finance Representative': ['dashboard', 'employees', 'payroll', 'idcard', 'exit', 'expenses', 'documents', 'reports'],
-  Employee: ['dashboard', 'attendance', 'leaves', 'payroll', 'idcard', 'exit', 'expenses', 'documents', 'announcements', 'holidays'],
+  'Finance Representative': ['dashboard', 'employees', 'payroll', 'idcard', 'exit', 'expenses', 'documents', 'reports', 'eveningreport'],
+  Employee: ['dashboard', 'attendance', 'leaves', 'eveningreport', 'payroll', 'idcard', 'exit', 'expenses', 'documents', 'announcements', 'holidays'],
 };
 
 export const PERMS = {
   manageEmployee: ['HR Admin', 'HR Representative'],
   approveLeave: ['HR Admin', 'HR Representative'],
+  viewAllEveningReports: ['HR Admin', 'HR Representative'],
   recruit: ['HR Admin', 'HR Representative'],
   offer: ['HR Admin'],
   salaryStructure: ['HR Admin'],

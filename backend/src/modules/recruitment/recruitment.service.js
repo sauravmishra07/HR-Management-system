@@ -7,8 +7,13 @@ import { inWords, money } from '../../common/utils/salary.js';
 import Settings from '../../modules/settings/settings.model.js';
 import * as audit from '../audit/audit.service.js';
 import logger from '../../common/utils/logger.js';
+import { emitToDDD } from '../../common/integration/ddd.client.js';
+import { broadcastChange } from '../../realtime/index.js';
 
 /* ============================ Helpers ============================ */
+
+/** Plain-object form of a doc for integration event payloads. */
+const plain = (doc) => (doc && typeof doc.toObject === 'function' ? doc.toObject() : doc);
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -59,6 +64,8 @@ export async function createOpening(data, actor) {
   const opening = await repo.openings.create({ ...data, code });
   logger.info(`Opening created: ${code} (${data.title})`);
   audit.record({ action: AUDIT_ACTIONS.CREATE, entity: 'Opening', entityId: code, actor, description: `Created opening ${data.title}` });
+  emitToDDD('recruitment.opening.changed', plain(opening)).catch(() => {});
+  broadcastChange('recruitment', plain(opening));
   return opening;
 }
 
@@ -67,6 +74,8 @@ export async function updateOpening(id, data, actor) {
   if (!opening) throw ApiError.notFound('Opening not found');
   const updated = await repo.openings.updateById(id, data);
   audit.record({ action: AUDIT_ACTIONS.UPDATE, entity: 'Opening', entityId: opening.code, actor, description: `Updated opening ${opening.title}` });
+  emitToDDD('recruitment.opening.changed', plain(updated)).catch(() => {});
+  broadcastChange('recruitment', plain(updated));
   return updated;
 }
 
@@ -76,6 +85,8 @@ export async function toggleOpening(id, actor) {
   const status = opening.status === JOB_STATUS.OPEN ? JOB_STATUS.CLOSED : JOB_STATUS.OPEN;
   const updated = await repo.openings.updateById(id, { status });
   audit.record({ action: AUDIT_ACTIONS.UPDATE, entity: 'Opening', entityId: opening.code, actor, description: `Set opening ${opening.code} to ${status}` });
+  emitToDDD('recruitment.opening.changed', plain(updated)).catch(() => {});
+  broadcastChange('recruitment', plain(updated));
   return updated;
 }
 
@@ -84,6 +95,8 @@ export async function removeOpening(id, actor) {
   if (!opening) throw ApiError.notFound('Opening not found');
   await repo.openings.softDelete(id);
   audit.record({ action: AUDIT_ACTIONS.DELETE, entity: 'Opening', entityId: opening.code, actor, description: `Removed opening ${opening.title}` });
+  emitToDDD('recruitment.opening.deleted', plain(opening)).catch(() => {});
+  broadcastChange('recruitment', plain(opening));
   return { deleted: true };
 }
 
@@ -109,6 +122,8 @@ export async function createCandidate(data, actor) {
   const candidate = await repo.candidates.create({ ...data, code });
   logger.info(`Candidate created: ${code} (${data.name})`);
   audit.record({ action: AUDIT_ACTIONS.CREATE, entity: 'Candidate', entityId: code, actor, description: `Added candidate ${data.name}` });
+  emitToDDD('recruitment.candidate.changed', plain(candidate)).catch(() => {});
+  broadcastChange('recruitment', plain(candidate));
   return candidate;
 }
 
@@ -118,6 +133,8 @@ export async function updateCandidateStage(id, stage, actor) {
   if (!candidate) throw ApiError.notFound('Candidate not found');
   const updated = await repo.candidates.updateById(id, { stage });
   audit.record({ action: AUDIT_ACTIONS.UPDATE, entity: 'Candidate', entityId: candidate.code, actor, description: `Moved ${candidate.name} to ${stage}` });
+  emitToDDD('recruitment.candidate.changed', plain(updated)).catch(() => {});
+  broadcastChange('recruitment', plain(updated));
   return updated;
 }
 
@@ -126,6 +143,8 @@ export async function removeCandidate(id, actor) {
   if (!candidate) throw ApiError.notFound('Candidate not found');
   await repo.candidates.softDelete(id);
   audit.record({ action: AUDIT_ACTIONS.DELETE, entity: 'Candidate', entityId: candidate.code, actor, description: `Removed candidate ${candidate.name}` });
+  emitToDDD('recruitment.candidate.deleted', plain(candidate)).catch(() => {});
+  broadcastChange('recruitment', plain(candidate));
   return { deleted: true };
 }
 
@@ -226,5 +245,7 @@ export async function createOffer(data, actor) {
 
   logger.info(`Offer created: ${code} (${name})`);
   audit.record({ action: AUDIT_ACTIONS.CREATE, entity: 'Offer', entityId: code, actor, description: `Issued offer to ${name} for ${role}` });
+  emitToDDD('recruitment.offer.created', plain(offer)).catch(() => {});
+  broadcastChange('recruitment', plain(offer));
   return offer;
 }

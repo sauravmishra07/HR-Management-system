@@ -92,6 +92,7 @@ const tablePages = new Set([
   'assets',
   'holidays',
   'leaves',
+  'eveningreport',
   'expenses',
   'recruitment',
   'exit',

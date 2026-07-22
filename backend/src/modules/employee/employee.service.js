@@ -10,6 +10,27 @@ import config from '../../config/index.js';
 import * as audit from '../audit/audit.service.js';
 import { AUDIT_ACTIONS } from '../../common/constants/index.js';
 import logger from '../../common/utils/logger.js';
+import { emitToDDD } from '../../common/integration/ddd.client.js';
+import { broadcastChange } from '../../realtime/index.js';
+
+/** Integration contract payload for employee.* events (works on docs and lean objects). */
+export function toEmployeePayload(emp) {
+  return {
+    empId: emp.empId,
+    name: emp.name,
+    dept: emp.dept,
+    role: emp.role,
+    email: emp.email,
+    phone: emp.phone,
+    join: emp.join,
+    dob: emp.dob,
+    salary: emp.salary,
+    gender: emp.gender,
+    status: emp.status,
+    access: emp.access,
+    managerId: emp.managerId,
+  };
+}
 
 function buildFilter(query) {
   const filter = {};
@@ -70,6 +91,8 @@ export async function create(data, actor) {
 
   logger.info(`Employee created: ${empId} (${data.name})`);
   audit.record({ action: AUDIT_ACTIONS.CREATE, entity: 'Employee', entityId: empId, actor, description: `Created employee ${data.name}` });
+  emitToDDD('employee.created', toEmployeePayload(employee)).catch(() => {});
+  broadcastChange('employees', toEmployeePayload(employee));
   return employee;
 }
 
@@ -94,6 +117,8 @@ export async function update(id, data, actor) {
   }
 
   audit.record({ action: AUDIT_ACTIONS.UPDATE, entity: 'Employee', entityId: emp.empId, actor, description: `Updated employee ${emp.name}` });
+  emitToDDD('employee.updated', toEmployeePayload(updated)).catch(() => {});
+  broadcastChange('employees', toEmployeePayload(updated));
   return updated;
 }
 
@@ -104,6 +129,8 @@ export async function toggleStatus(id, actor) {
   const updated = await repo.updateById(id, { status });
   if (emp.user) await User.updateOne({ _id: emp.user }, { isActive: status === EMPLOYEE_STATUS.ACTIVE });
   audit.record({ action: AUDIT_ACTIONS.UPDATE, entity: 'Employee', entityId: emp.empId, actor, description: `Set status ${status}` });
+  emitToDDD('employee.status_changed', toEmployeePayload(updated)).catch(() => {});
+  broadcastChange('employees', toEmployeePayload(updated));
   return updated;
 }
 
@@ -113,6 +140,8 @@ export async function remove(id, actor) {
   await repo.softDelete(id);
   if (emp.user) await User.updateOne({ _id: emp.user }, { isActive: false, deletedAt: new Date() });
   audit.record({ action: AUDIT_ACTIONS.DELETE, entity: 'Employee', entityId: emp.empId, actor, description: `Removed employee ${emp.name}` });
+  emitToDDD('employee.deleted', toEmployeePayload(emp)).catch(() => {});
+  broadcastChange('employees', toEmployeePayload(emp));
   return { deleted: true };
 }
 

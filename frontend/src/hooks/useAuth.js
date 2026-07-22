@@ -2,6 +2,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useCallback } from 'react';
 import { setCredentials, logout as logoutAction, updateUser } from '@/store/authSlice';
 import { authApi } from '@/api';
+import { disconnectSocket } from '@/lib/socket';
 import { can as canPerm, canView as canViewFn } from '@/constants/nav';
 
 /** Central auth accessor: user, role, permission helpers, login/logout. */
@@ -25,6 +26,7 @@ export function useAuth() {
     } catch {
       /* ignore network errors on logout */
     }
+    disconnectSocket();
     dispatch(logoutAction());
   }, [dispatch]);
 
