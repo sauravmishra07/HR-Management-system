@@ -27,7 +27,13 @@ export const config = {
   isProd: process.env.NODE_ENV === 'production',
   port: num(process.env.PORT, 5000),
   apiPrefix: process.env.API_PREFIX || '/api/v1',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  /** All allowed browser origins (CLIENT_URL may be a comma-separated list). */
+  clientUrls: (process.env.CLIENT_URL || 'http://localhost:5173')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
+  /** Primary frontend URL (first entry) — used for links in emails, etc. */
+  clientUrl: (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0].trim(),
 
   mongoUri: process.env.MONGODB_URI,
 

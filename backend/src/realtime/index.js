@@ -18,7 +18,7 @@ const HR_STAFF_ROLES = [ROLES.HR_ADMIN, ROLES.HR_REP];
 export function initSocket(httpServer) {
   io = new Server(httpServer, {
     cors: {
-      origin: config.clientUrl.split(',').map((s) => s.trim()),
+      origin: config.clientUrls,
       credentials: true,
     },
   });

@@ -13,9 +13,9 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // Proxy API + uploads to the Render backend during development.
-      '/api': { target: 'https://hrms.itsybizz.com', changeOrigin: true, secure: true },
-      '/uploads': { target: 'https://hrms.itsybizz.com', changeOrigin: true, secure: true },
+      // Proxy API + uploads to the local backend during development (plain HTTP).
+      '/api': { target: 'https://hrmsapi.itsybizz.com', changeOrigin: true },
+      '/uploads': { target: 'https://hrmsapi.itsybizz.com', changeOrigin: true },
     },
   },
 });

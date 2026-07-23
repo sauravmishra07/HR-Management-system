@@ -25,7 +25,7 @@ app.set('trust proxy', 1);
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(
   cors({
-    origin: config.clientUrl.split(',').map((s) => s.trim()),
+    origin: config.clientUrls,
     credentials: true,
   })
 );
@@ -42,7 +42,14 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ---- Health check ----
 app.get('/health', (req, res) =>
-  res.json({ success: true, status: 'ok', env: config.env, uptime: process.uptime() })
+  res.json({
+    success: true,
+    status: 'ok',
+    env: config.env,
+    uptime: process.uptime(),
+    currentTimeUtc: new Date().toISOString(),
+    currentTimeLocal: new Date().toString()
+  })
 );
 
 // ---- API ----
